@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programación de Trabajo - Sector 179</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Script necesario para convertir el diseño a imagen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandBlue: {
+                            500: '#1E40AF', // Azul fuerte
+                            600: '#1E3A8A',
+                            100: '#DBEAFE'
+                        },
+                        brandOrange: {
+                            500: '#F97316', // Naranja brillante
+                            100: '#FFEDD5',
+                            600: '#EA580C'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 p-4 md:p-8 font-sans">
+
+    <!-- Botón de Descarga -->
+    <div class="max-w-5xl mx-auto mb-4 flex justify-end" data-html2canvas-ignore="true">
+        <button onclick="descargarImagen()" class="bg-brandOrange-500 hover:bg-brandOrange-600 text-white font-bold py-2 px-6 rounded-lg shadow-md flex items-center transition-colors">
+            <i class="fas fa-download mr-2"></i> Descargar como Imagen
+        </button>
+    </div>
+
+    <!-- Contenedor principal que será convertido a imagen -->
+    <div id="contenido-a-descargar" class="max-w-5xl mx-auto bg-gray-100 p-4 rounded-xl">
+        
+        <!-- Encabezado Principal -->
+        <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-brandOrange-500 p-6 flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-brandBlue-600 uppercase tracking-wide">Programación de Trabajo</h1>
+                <p class="text-gray-500 mt-1 font-medium text-lg"><i class="fas fa-map-marker-alt text-brandOrange-500 mr-2"></i>Sector 179</p>
+            </div>
+        </header>
+
+        <!-- Contenedor de los Días -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Día 1: 01/03/2026 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                <div class="bg-brandBlue-500 text-white px-4 py-3 flex items-center justify-between">
+                    <h2 class="text-lg font-bold"><i class="far fa-calendar-alt mr-2 text-brandOrange-500"></i>Domingo, 01 / 03 / 2026</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-brandBlue-100 text-brandBlue-600 text-sm uppercase">
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200">Asignación</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200">Manzanas</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200 text-center">Total de Casas</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700 text-sm">
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 1</td>
+                                <td class="py-3 px-4">22 y 15</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">31</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 2</td>
+                                <td class="py-3 px-4">14 y 7</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">30</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 3</td>
+                                <td class="py-3 px-4">6 y 23</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">31</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 4</td>
+                                <td class="py-3 px-4">4, 64 y 66</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">32</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Día 2: 02/03/2026 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                <div class="bg-brandOrange-500 text-white px-4 py-3 flex items-center justify-between">
+                    <h2 class="text-lg font-bold"><i class="far fa-calendar-alt mr-2 text-brandBlue-600"></i>Lunes, 02 / 03 / 2026</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-brandOrange-100 text-brandOrange-600 text-sm uppercase">
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200">Asignación</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200">Manzanas</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200 text-center">Total de Casas</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700 text-sm">
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 1</td>
+                                <td class="py-3 px-4">58, 65 y 30</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">36</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 2</td>
+                                <td class="py-3 px-4">60, 29 y 57</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">36</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Día 3: 03/03/2026 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                <div class="bg-brandBlue-500 text-white px-4 py-3 flex items-center justify-between">
+                    <h2 class="text-lg font-bold"><i class="far fa-calendar-alt mr-2 text-brandOrange-500"></i>Martes, 03 / 03 / 2026</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-brandBlue-100 text-brandBlue-600 text-sm uppercase">
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200">Asignación</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200">Manzanas</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200 text-center">Total de Casas</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700 text-sm">
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 1</td>
+                                <td class="py-3 px-4">16, 21 y 31</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">29</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 2</td>
+                                <td class="py-3 px-4">17, 26 y 33</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">32</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 3</td>
+                                <td class="py-3 px-4">2, 3 y 5</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">32</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 4</td>
+                                <td class="py-3 px-4">36 y 34</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">34</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Día 4: 04/03/2026 -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                <div class="bg-brandOrange-500 text-white px-4 py-3 flex items-center justify-between">
+                    <h2 class="text-lg font-bold"><i class="far fa-calendar-alt mr-2 text-brandBlue-600"></i>Miércoles, 04 / 03 / 2026</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-brandOrange-100 text-brandOrange-600 text-sm uppercase">
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200">Asignación</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200">Manzanas</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-200 text-center">Total de Casas</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700 text-sm">
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 1</td>
+                                <td class="py-3 px-4">8, 9 y 38</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">42</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 2</td>
+                                <td class="py-3 px-4">27</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">43</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 3</td>
+                                <td class="py-3 px-4">20, 19 y 10</td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">43</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-brandBlue-600">Aplicativo 4</td>
+                                <td class="py-3 px-4 text-gray-400 italic"></td>
+                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500">39</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script de funcionalidad de captura -->
+    <script>
+        function descargarImagen() {
+            const btn = document.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Procesando...';
+            
+            const elemento = document.getElementById('contenido-a-descargar');
+            
+            // html2canvas toma la "foto" de tu código
+            html2canvas(elemento, {
+                scale: 2, // Escala 2 para alta calidad (HD)
+                backgroundColor: '#f3f4f6', // Mantiene el color de fondo gris
+                useCORS: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Programacion_Sector_179.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                btn.innerHTML = originalText;
+            }).catch(err => {
+                console.error('Error al generar la imagen', err);
+                btn.innerHTML = '<i class="fas fa-times mr-2"></i> Error al descargar';
+                setTimeout(() => { btn.innerHTML = originalText; }, 3000);
+            });
+        }
+    </script>
+</body>
+</html>
