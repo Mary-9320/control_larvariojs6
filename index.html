@@ -57,7 +57,7 @@
     <div class="max-w-5xl mx-auto mb-4 flex flex-col sm:flex-row justify-between items-center gap-4" data-html2canvas-ignore="true">
         <div class="bg-blue-50 text-brandBlue-600 px-4 py-3 rounded-lg border border-blue-200 flex-1 flex items-center shadow-sm">
             <i class="fas fa-info-circle text-xl mr-3"></i>
-            <p class="text-sm font-medium"><strong>¡Plantilla Editable!</strong> Haz clic sobre las fechas, el sector, las manzanas o las casas para modificar el texto. Cuando termines, descarga la imagen.</p>
+            <p class="text-sm font-medium"><strong>¡Plantilla Editable!</strong> Haz clic sobre las fechas, el sector, la colonia, las manzanas o las casas para modificar el texto. Cuando termines, descarga la imagen.</p>
         </div>
         <button onclick="descargarImagen()" class="bg-brandOrange-500 hover:bg-brandOrange-600 text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center transition-colors whitespace-nowrap">
             <i class="fas fa-download mr-2"></i> Guardar Imagen
@@ -71,9 +71,16 @@
         <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-brandOrange-500 p-6 flex items-center justify-between mb-6">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold text-brandBlue-600 uppercase tracking-wide">Programación de Trabajo</h1>
-                <p class="text-gray-500 mt-1 font-medium text-lg flex items-center">
-                    <i class="fas fa-map-marker-alt text-brandOrange-500 mr-2"></i>
-                    Sector <span contenteditable="true" class="editable ml-1 font-bold px-1">179</span>
+                <p class="text-gray-500 mt-2 font-medium text-lg flex flex-wrap items-center gap-y-2">
+                    <span class="flex items-center mr-4">
+                        <i class="fas fa-map-marker-alt text-brandOrange-500 mr-2"></i>
+                        Sector <span id="sector-texto" contenteditable="true" class="editable ml-1 font-bold px-1 text-gray-800">179</span>
+                    </span>
+                    <span class="hidden sm:inline-block text-gray-300 mr-4">|</span>
+                    <span class="flex items-center">
+                        <i class="fas fa-city text-brandBlue-500 mr-2"></i>
+                        Colonia <span id="colonia-texto" contenteditable="true" class="editable ml-1 font-bold px-1 text-brandBlue-600">Escribe aquí la Colonia</span>
+                    </span>
                 </p>
             </div>
         </header>
@@ -288,7 +295,7 @@
             }).then(canvas => {
                 const link = document.createElement('a');
                 // Nombre del archivo dinámico dependiendo del sector
-                const sectorNum = document.querySelector('span.editable').innerText.trim() || 'Desconocido';
+                const sectorNum = document.getElementById('sector-texto').innerText.trim() || 'Desconocido';
                 link.download = `Programacion_Sector_${sectorNum}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
@@ -302,3 +309,4 @@
     </script>
 </body>
 </html>
+
