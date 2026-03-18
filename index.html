@@ -43,6 +43,7 @@
         .cal-area-salinas { border-left: 4px solid #10b981; background-color: #ecfdf5; }
         .cal-area-foraneas { border-left: 4px solid #ef4444; background-color: #fef2f2; }
         .cal-area-entomologia { border-left: 4px solid #8b5cf6; background-color: #f5f3ff; }
+        .cal-area-nebulizacion { border-left: 4px solid #06b6d4; background-color: #ecfeff; }
         
         /* Ocultar barra de scroll en tablas */
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -117,6 +118,9 @@
         </button>
         <button id="tab-btn-entomologia" onclick="cambiarPestana('entomologia')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm">
             ENTOMOLOGÍA
+        </button>
+        <button id="tab-btn-nebulizacion" onclick="cambiarPestana('nebulizacion')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm">
+            NEBULIZACIÓN
         </button>
         
         <!-- Pestañas de Gestión -->
@@ -314,7 +318,8 @@
             { id: 'brigada', nombre: 'Brigada JS6', apps: 10, claseCSS: 'cal-area-brigada text-brandOrange-600' },
             { id: 'salinas', nombre: 'CSU Carlos Salinas', apps: 4, claseCSS: 'cal-area-salinas text-emerald-800' },
             { id: 'foraneas', nombre: 'Unidades Foráneas', apps: 7, claseCSS: 'cal-area-foraneas text-red-800' },
-            { id: 'entomologia', nombre: 'Entomología', apps: 3, claseCSS: 'cal-area-entomologia text-violet-800' }
+            { id: 'entomologia', nombre: 'Entomología', apps: 3, claseCSS: 'cal-area-entomologia text-violet-800' },
+            { id: 'nebulizacion', nombre: 'Nebulización', apps: 3, claseCSS: 'cal-area-nebulizacion text-cyan-800' }
         ];
 
         // --- SISTEMA DE MODALES (REEMPLAZO DE ALERTS/CONFIRMS) ---
@@ -411,6 +416,8 @@
             const grid = document.getElementById(idContenedor);
             let html = "";
             const isEntomo = idArea === 'entomologia';
+            const isNebulizacion = idArea === 'nebulizacion';
+            const hasTipo = isEntomo || isNebulizacion;
 
             diasSemana.forEach((dia, index) => {
                 let rows = "";
@@ -430,6 +437,23 @@
                             <td class="py-2 px-2 text-center font-bold text-violet-500 editable avance-input" contenteditable="true"></td>
                             <td class="py-2 px-1 text-center" data-html2canvas-ignore="false">
                                 <input type="checkbox" title="Marcar al completar" class="w-4 h-4 cursor-pointer text-violet-600 border-gray-300 rounded focus:ring-violet-500 verificado-checkbox">
+                            </td>
+                        </tr>`;
+                    } else if (isNebulizacion) {
+                        // Fila especial para Nebulización
+                        rows += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-2 px-2 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo ${i}</td>
+                            <td class="py-2 px-2">
+                                <select class="tipo-nebulizacion bg-transparent border-b border-gray-300 outline-none text-xs w-full text-cyan-600 font-semibold cursor-pointer">
+                                    <option value="Nebulización">Nebulización</option>
+                                    <option value="Termonebulización">Termonebulización</option>
+                                </select>
+                            </td>
+                            <td class="py-2 px-2 editable manzanas-input" contenteditable="true"></td>
+                            <td class="py-2 px-2 text-center font-bold text-cyan-500 editable totales-input" contenteditable="true"></td>
+                            <td class="py-2 px-1 text-center" data-html2canvas-ignore="false">
+                                <input type="checkbox" title="Marcar al completar" class="w-4 h-4 cursor-pointer text-cyan-600 border-gray-300 rounded focus:ring-cyan-500 verificado-checkbox">
                             </td>
                         </tr>`;
                     } else {
@@ -453,6 +477,10 @@
                     headerColor = isPar ? 'bg-violet-500' : 'bg-violet-400';
                     iconColor = isPar ? 'text-violet-100' : 'text-violet-100';
                     thColor = isPar ? 'bg-violet-100 text-violet-700' : 'bg-violet-50 text-violet-600';
+                } else if (isNebulizacion) {
+                    headerColor = isPar ? 'bg-cyan-600' : 'bg-cyan-500';
+                    iconColor = isPar ? 'text-cyan-100' : 'text-cyan-100';
+                    thColor = isPar ? 'bg-cyan-100 text-cyan-800' : 'bg-cyan-50 text-cyan-700';
                 } else {
                     headerColor = isPar ? 'bg-brandBlue-500' : 'bg-brandOrange-500';
                     iconColor = isPar ? 'text-brandOrange-100' : 'text-brandBlue-100';
@@ -461,13 +489,15 @@
 
                 // Generar encabezados de tabla según el tipo
                 let tableHeaders = "";
-                if (isEntomo) {
+                if (hasTipo) {
+                    let textTotal = isEntomo ? "Avance" : "Total";
+                    let tooltipTotal = isEntomo ? 'title="Casas completadas (Si es Verificación)"' : '';
                     tableHeaders = `
                         <tr class="${thColor} text-xs uppercase">
                             <th class="py-2 px-2 font-semibold border-b border-gray-200 w-1/5">Asignación</th>
                             <th class="py-2 px-2 font-semibold border-b border-gray-200 w-1/5">Tipo</th>
                             <th class="py-2 px-2 font-semibold border-b border-gray-200 w-1/3">Manzanas</th>
-                            <th class="py-2 px-2 font-semibold border-b border-gray-200 text-center w-1/5" title="Casas completadas (Si es Verificación)">Avance</th>
+                            <th class="py-2 px-2 font-semibold border-b border-gray-200 text-center w-1/5" ${tooltipTotal}>${textTotal}</th>
                             <th class="py-2 px-1 font-semibold border-b border-gray-200 text-center w-1/12"><i class="fas fa-check-double"></i></th>
                         </tr>`;
                 } else {
@@ -520,6 +550,8 @@
             const folio = contenedor.querySelector('.folio-texto').innerText.trim() || 'S/N';
             const infoArea = areasInfo.find(a => a.id === idArea);
             const isEntomo = idArea === 'entomologia';
+            const isNebulizacion = idArea === 'nebulizacion';
+            const hasTipo = isEntomo || isNebulizacion;
             
             let conteoTareas = 0;
             let manzanasCompletas = [];
@@ -541,7 +573,7 @@
                     let totalOrAvance = '';
                     let completado = false;
 
-                    if (isEntomo) {
+                    if (hasTipo) {
                         const selectEl = tds[1].querySelector('select');
                         tipo = selectEl ? selectEl.value : '';
                         manz = tds[2].innerText.trim();
@@ -558,13 +590,14 @@
                     if (manz !== '') {
                         conteoTareas++;
                         
-                        let tareaDesc = isEntomo ? `${app} (${tipo})` : app;
+                        let tareaDesc = hasTipo ? `${app} (${tipo})` : app;
                         diaObj.tareas.push({ 
                             aplicativo: tareaDesc, 
                             manzanas: manz, 
                             total: totalOrAvance, 
                             completado: completado,
                             esEntomologia: isEntomo,
+                            esNebulizacion: isNebulizacion,
                             tipo: tipo
                         });
                         
@@ -677,6 +710,8 @@
             if(!registro) return;
 
             const isEntomo = registro.area === 'Entomología';
+            const isNebulizacion = registro.area === 'Nebulización';
+            const hasTipo = isEntomo || isNebulizacion;
 
             document.getElementById('detalle-titulo').innerText = `Folio: ${registro.folio || 'S/N'} - ${registro.area}`;
             document.getElementById('detalle-subtitulo').innerText = `Sector: ${registro.sector} | Colonia: ${registro.colonia} | Guardado: ${registro.fechaGuardado}`;
@@ -692,6 +727,9 @@
                     if (isEntomo) {
                         headerColor = isPar ? 'bg-violet-500' : 'bg-violet-400';
                         thColor = isPar ? 'bg-violet-100 text-violet-700' : 'bg-violet-50 text-violet-600';
+                    } else if (isNebulizacion) {
+                        headerColor = isPar ? 'bg-cyan-600' : 'bg-cyan-500';
+                        thColor = isPar ? 'bg-cyan-100 text-cyan-800' : 'bg-cyan-50 text-cyan-700';
                     } else {
                         headerColor = isPar ? 'bg-brandBlue-500' : 'bg-brandOrange-500';
                         thColor = isPar ? 'bg-brandBlue-100 text-brandBlue-600' : 'bg-brandOrange-100 text-brandOrange-600';
@@ -703,17 +741,20 @@
                             ? '<i class="fas fa-check-circle text-green-500 text-lg"></i>'
                             : '<i class="fas fa-times-circle text-red-500 text-lg opacity-50"></i>';
 
+                        let colorTotal = isEntomo ? 'text-violet-600' : isNebulizacion ? 'text-cyan-600' : 'text-brandOrange-600';
+
                         rows += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
                             <td class="py-2 px-4 font-medium text-gray-700">${tarea.aplicativo}</td>
                             <td class="py-2 px-4 text-gray-800 font-bold">${tarea.manzanas}</td>
-                            <td class="py-2 px-4 text-center font-bold ${isEntomo ? 'text-violet-600' : 'text-brandOrange-600'}">${tarea.total}</td>
+                            <td class="py-2 px-4 text-center font-bold ${colorTotal}">${tarea.total}</td>
                             <td class="py-2 px-4 text-center">${iconStatus}</td>
                         </tr>`;
                     });
 
-                    let tableHeaders = isEntomo 
-                        ? `<th class="py-2 px-4 font-semibold w-1/4">Asig. (Tipo)</th><th class="py-2 px-4 font-semibold w-1/2">Manzanas</th><th class="py-2 px-4 font-semibold text-center w-1/6">Avance</th><th class="py-2 px-4 font-semibold text-center w-1/12"><i class="fas fa-check-double"></i></th>`
+                    let labelTotal = isEntomo ? 'Avance' : 'Total';
+                    let tableHeaders = hasTipo 
+                        ? `<th class="py-2 px-4 font-semibold w-1/4">Asig. (Tipo)</th><th class="py-2 px-4 font-semibold w-1/2">Manzanas</th><th class="py-2 px-4 font-semibold text-center w-1/6">${labelTotal}</th><th class="py-2 px-4 font-semibold text-center w-1/12"><i class="fas fa-check-double"></i></th>`
                         : `<th class="py-2 px-4 font-semibold w-1/4">Asignación</th><th class="py-2 px-4 font-semibold w-1/2">Manzanas</th><th class="py-2 px-4 font-semibold text-center w-1/6">Total</th><th class="py-2 px-4 font-semibold text-center w-1/12"><i class="fas fa-check-double"></i></th>`;
 
                     html += `
@@ -765,6 +806,7 @@
                 contenedor.querySelectorAll('.totales-input').forEach(c => c.innerText = '');
                 contenedor.querySelectorAll('.avance-input').forEach(c => c.innerText = '');
                 contenedor.querySelectorAll('.tipo-entomologia').forEach(c => c.value = 'Encuesta');
+                contenedor.querySelectorAll('.tipo-nebulizacion').forEach(c => c.value = 'Nebulización');
                 contenedor.querySelectorAll('.verificado-checkbox').forEach(chk => chk.checked = false);
             });
         };
@@ -781,6 +823,7 @@
                         contenedor.querySelectorAll('.totales-input').forEach(c => c.innerText = '');
                         contenedor.querySelectorAll('.avance-input').forEach(c => c.innerText = '');
                         contenedor.querySelectorAll('.tipo-entomologia').forEach(c => c.value = 'Encuesta');
+                        contenedor.querySelectorAll('.tipo-nebulizacion').forEach(c => c.value = 'Nebulización');
                         contenedor.querySelectorAll('.verificado-checkbox').forEach(chk => chk.checked = false);
                     }
                 });
@@ -809,6 +852,8 @@
                     if (!contInfo) return;
                     
                     const isEntomo = area.id === 'entomologia';
+                    const isNebulizacion = area.id === 'nebulizacion';
+                    const hasTipo = isEntomo || isNebulizacion;
                     const sector = contInfo.querySelector('.sector-texto').innerText.trim() || 'S/N';
                     const colonia = contInfo.querySelector('.colonia-texto').innerText.trim() || 'S/N';
                     
@@ -821,13 +866,14 @@
                         filas.forEach(fila => {
                             const tds = fila.querySelectorAll('td');
                             let app = tds[0].innerText.trim();
-                            let manz = isEntomo ? tds[2].innerText.trim() : tds[1].innerText.trim();
-                            let total = isEntomo ? tds[3].innerText.trim() : tds[2].innerText.trim();
-                            let tipo = isEntomo ? (tds[1].querySelector('select') ? tds[1].querySelector('select').value : '') : '';
+                            let manz = hasTipo ? tds[2].innerText.trim() : tds[1].innerText.trim();
+                            let total = hasTipo ? tds[3].innerText.trim() : tds[2].innerText.trim();
+                            let tipo = hasTipo ? (tds[1].querySelector('select') ? tds[1].querySelector('select').value : '') : '';
                             
                             if (manz && manz !== '') {
-                                let desc = isEntomo 
-                                    ? `<strong>${app} (${tipo}):</strong> Mz ${manz} <span class="text-gray-500">(Avance:${total})</span>` 
+                                let labelTotal = isEntomo ? 'Avance' : 'Total';
+                                let desc = hasTipo 
+                                    ? `<strong>${app} (${tipo}):</strong> Mz ${manz} <span class="text-gray-500">(${labelTotal}:${total})</span>` 
                                     : `<strong>${app}:</strong> Mz ${manz} <span class="text-gray-500">(T:${total})</span>`;
                                 tareasHtml += `<li class="text-xs mb-1">${desc}</li>`;
                             }
@@ -890,7 +936,7 @@
         };
 
         function getPestanaActiva() {
-            const tabs = ['lazarocardenas', 'brigada', 'salinas', 'foraneas', 'entomologia', 'calendario', 'historial'];
+            const tabs = ['lazarocardenas', 'brigada', 'salinas', 'foraneas', 'entomologia', 'nebulizacion', 'calendario', 'historial'];
             let activa = tabs[0];
             tabs.forEach(tab => {
                 const el = document.getElementById('contenedor-' + tab);
@@ -954,6 +1000,8 @@
                 const tituloArea = contenedor.querySelector('h1').innerText.trim();
                 const tituloFinal = tituloGeneral ? `[${tituloGeneral}] ${tituloArea}` : tituloArea;
                 const isEntomo = idArea === 'entomologia';
+                const isNebulizacion = idArea === 'nebulizacion';
+                const hasTipo = isEntomo || isNebulizacion;
 
                 contenedor.querySelectorAll('.dia-card').forEach(card => {
                     const fechaTexto = card.querySelector('.fecha-editable').innerText.trim();
@@ -970,13 +1018,14 @@
                     card.querySelectorAll('tbody tr').forEach(fila => {
                         const tds = fila.querySelectorAll('td');
                         const app = tds[0].innerText.trim();
-                        const manz = isEntomo ? tds[2].innerText.trim() : tds[1].innerText.trim();
-                        const total = isEntomo ? tds[3].innerText.trim() : tds[2].innerText.trim();
-                        const tipo = isEntomo ? (tds[1].querySelector('select') ? tds[1].querySelector('select').value : '') : '';
+                        const manz = hasTipo ? tds[2].innerText.trim() : tds[1].innerText.trim();
+                        const total = hasTipo ? tds[3].innerText.trim() : tds[2].innerText.trim();
+                        const tipo = hasTipo ? (tds[1].querySelector('select') ? tds[1].querySelector('select').value : '') : '';
 
                         if (manz.length > 0) {
-                            let desc = isEntomo 
-                                ? `👉 ${app} (${tipo}): Manzanas ${manz} (Avance: ${total})\\n` 
+                            let labelTotal = isEntomo ? 'Avance' : 'Total';
+                            let desc = hasTipo 
+                                ? `👉 ${app} (${tipo}): Manzanas ${manz} (${labelTotal}: ${total})\\n` 
                                 : `👉 ${app}: Manzanas ${manz} (Total: ${total})\\n`;
                             descripcion += desc;
                         }
