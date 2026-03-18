@@ -6,7 +6,6 @@
     <title>Plantilla Editable - Programación de Trabajo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Script necesario para convertir el diseño a imagen -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         tailwind.config = {
@@ -14,14 +13,14 @@
                 extend: {
                     colors: {
                         brandBlue: {
-                            500: '#1E40AF', // Azul fuerte
-                            600: '#1E3A8A',
-                            100: '#DBEAFE'
+                            500: '#00AEEF', 
+                            600: '#008CBE', 
+                            100: '#E5F7FD'  
                         },
                         brandOrange: {
-                            500: '#F97316', // Naranja brillante
-                            100: '#FFEDD5',
-                            600: '#EA580C'
+                            500: '#F47920', 
+                            600: '#D96515', 
+                            100: '#FEF1E8'  
                         }
                     }
                 }
@@ -29,283 +28,730 @@
         }
     </script>
     <style>
-        /* Estilos para indicar que un campo es editable */
         .editable {
             transition: all 0.2s;
             border-radius: 0.25rem;
             outline: none;
             cursor: text;
         }
-        .editable:hover {
-            background-color: rgba(249, 115, 22, 0.1); /* Naranja clarito al pasar el mouse */
-            box-shadow: 0 0 0 1px #F97316;
-        }
-        .editable:focus {
-            background-color: white;
-            box-shadow: 0 0 0 2px #1E40AF; /* Azul fuerte al hacer clic */
-            color: #111827 !important;
-        }
-        td.editable {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-        }
+        .editable:hover { background-color: rgba(244, 121, 32, 0.1); box-shadow: 0 0 0 1px #F47920; }
+        .editable:focus { background-color: white; box-shadow: 0 0 0 2px #00AEEF; color: #111827 !important; }
+        td.editable { padding-left: 0.5rem; padding-right: 0.5rem; }
+        
+        .cal-area-lazarocardenas { border-left: 4px solid #00AEEF; background-color: #E5F7FD; }
+        .cal-area-brigada { border-left: 4px solid #F47920; background-color: #FEF1E8; }
+        .cal-area-salinas { border-left: 4px solid #10b981; background-color: #ecfdf5; }
+        .cal-area-foraneas { border-left: 4px solid #ef4444; background-color: #fef2f2; }
+        .cal-area-entomologia { border-left: 4px solid #8b5cf6; background-color: #f5f3ff; }
+        
+        /* Ocultar barra de scroll en tablas */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-gray-100 p-4 md:p-8 font-sans">
+<body class="bg-gray-100 p-2 md:p-8 font-sans">
 
-    <!-- Instrucciones y Botón de Descarga (Se ignoran al tomar la foto) -->
-    <div class="max-w-5xl mx-auto mb-4 flex flex-col sm:flex-row justify-between items-center gap-4" data-html2canvas-ignore="true">
-        <div class="bg-blue-50 text-brandBlue-600 px-4 py-3 rounded-lg border border-blue-200 flex-1 flex items-center shadow-sm">
-            <i class="fas fa-info-circle text-xl mr-3"></i>
-            <p class="text-sm font-medium"><strong>¡Plantilla Editable!</strong> Haz clic sobre las fechas, el sector, la colonia, las manzanas o las casas para modificar el texto. Cuando termines, descarga la imagen.</p>
+    <!-- Modal Personalizado (Reemplaza los alerts) -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm" data-html2canvas-ignore="true">
+        <div class="bg-white p-6 rounded-xl max-w-sm w-full shadow-2xl transform transition-all">
+            <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-2 flex items-center"></h3>
+            <p id="modal-msg" class="text-gray-600 mb-6"></p>
+            <div class="flex justify-end gap-3" id="modal-buttons"></div>
         </div>
-        <button onclick="descargarImagen()" class="bg-brandOrange-500 hover:bg-brandOrange-600 text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center transition-colors whitespace-nowrap">
-            <i class="fas fa-download mr-2"></i> Guardar Imagen
+    </div>
+
+    <!-- Instrucciones y Botones Generales -->
+    <div class="max-w-7xl mx-auto mb-4 flex flex-col md:flex-row justify-between items-center gap-4" data-html2canvas-ignore="true">
+        <div class="bg-blue-50 text-brandBlue-600 px-4 py-3 rounded-lg border border-blue-200 flex-1 flex items-center shadow-sm w-full">
+            <i class="fas fa-info-circle text-xl mr-3"></i>
+            <p class="text-sm font-medium"><strong>¡Plantilla Editable!</strong> Edita, guarda en el <strong>Historial</strong>, exporta a Sheets o descarga como imagen.</p>
+        </div>
+        
+        <div class="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
+            <a href="https://calendar.google.com/calendar/u/0/r" target="_blank" class="bg-brandBlue-600 hover:bg-brandBlue-500 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
+                <i class="fas fa-external-link-alt mr-2"></i> Calendario Gral.
+            </a>
+            <button onclick="exportarCalendario()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
+                <i class="fas fa-calendar-plus mr-2"></i> Crear .ICS
+            </button>
+            <button onclick="descargarImagen()" class="bg-brandOrange-500 hover:bg-brandOrange-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
+                <i class="fas fa-image mr-2"></i> Imagen
+            </button>
+        </div>
+    </div>
+
+    <!-- Pestañas -->
+    <div class="max-w-7xl mx-auto mb-4 flex flex-wrap gap-1" data-html2canvas-ignore="true">
+        <button id="tab-btn-lazarocardenas" onclick="cambiarPestana('lazarocardenas')" class="tab-btn px-4 py-2 bg-brandBlue-600 text-white font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm">
+            CSU LÁZARO CÁRDENAS
+        </button>
+        <button id="tab-btn-brigada" onclick="cambiarPestana('brigada')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm">
+            BRIGADA JS6
+        </button>
+        <button id="tab-btn-salinas" onclick="cambiarPestana('salinas')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm">
+            CSU C. SALINAS
+        </button>
+        <button id="tab-btn-foraneas" onclick="cambiarPestana('foraneas')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm">
+            FORÁNEAS
+        </button>
+        <button id="tab-btn-entomologia" onclick="cambiarPestana('entomologia')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm">
+            ENTOMOLOGÍA
+        </button>
+        
+        <!-- Pestañas de Gestión -->
+        <button id="tab-btn-calendario" onclick="cambiarPestana('calendario')" class="tab-btn px-4 py-2 bg-purple-600 text-white font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm ml-auto">
+            <i class="fas fa-calendar-week mr-1"></i> CALENDARIO
+        </button>
+        <button id="tab-btn-historial" onclick="cambiarPestana('historial')" class="tab-btn px-4 py-2 bg-gray-800 text-white font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm">
+            <i class="fas fa-history mr-1"></i> HISTORIAL
         </button>
     </div>
 
-    <!-- Contenedor principal que será convertido a imagen -->
-    <div id="contenido-a-descargar" class="max-w-5xl mx-auto bg-gray-100 p-4 rounded-xl">
-        
-        <!-- Encabezado Principal -->
-        <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-brandOrange-500 p-6 flex items-center justify-between mb-6">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-bold text-brandBlue-600 uppercase tracking-wide">Programación de Trabajo</h1>
-                <p class="text-gray-500 mt-2 font-medium text-lg flex flex-wrap items-center gap-y-2">
-                    <span class="flex items-center mr-4">
-                        <i class="fas fa-map-marker-alt text-brandOrange-500 mr-2"></i>
-                        Sector <span id="sector-texto" contenteditable="true" class="editable ml-1 font-bold px-1 text-gray-800">179</span>
-                    </span>
-                    <span class="hidden sm:inline-block text-gray-300 mr-4">|</span>
-                    <span class="flex items-center">
-                        <i class="fas fa-city text-brandBlue-500 mr-2"></i>
-                        Colonia <span id="colonia-texto" contenteditable="true" class="editable ml-1 font-bold px-1 text-brandBlue-600">Escribe aquí la Colonia</span>
-                    </span>
-                </p>
-            </div>
-        </header>
+    <!-- Contenedores Generados Dinámicamente por JS (para no repetir código HTML) -->
+    <div id="contenedores-areas"></div>
 
-        <!-- Contenedor de los Días -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            <!-- Día 1 -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-                <div class="bg-brandBlue-500 text-white px-4 py-3 flex items-center justify-between">
-                    <h2 class="text-lg font-bold flex items-center w-full">
-                        <i class="far fa-calendar-alt mr-2 text-brandOrange-500"></i>
-                        <span contenteditable="true" class="editable px-1 w-full">Domingo, 01 / 03 / 2026</span>
-                    </h2>
+    <!-- NUEVO CONTENEDOR: HISTORIAL DE REGISTROS -->
+    <div id="contenedor-historial" class="tab-content hidden">
+        <div class="max-w-7xl mx-auto bg-gray-100 p-4 rounded-xl captura-objetivo">
+            <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-gray-800 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wide">
+                        <i class="fas fa-archive mr-2"></i> Historial de Programaciones
+                    </h1>
+                    <p class="text-gray-500 mt-2 font-medium text-lg">Registro de todas las programaciones guardadas con fecha y hora.</p>
                 </div>
-                <div class="overflow-x-auto">
+            </header>
+            
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                <div class="overflow-x-auto no-scrollbar">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-brandBlue-100 text-brandBlue-600 text-sm uppercase">
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 w-1/4">Asignación</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 w-1/2">Manzanas</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 text-center w-1/4">Total Casas</th>
+                            <tr class="bg-gray-800 text-white text-sm uppercase">
+                                <th class="py-3 px-4 font-semibold border-b border-gray-700">Fecha de Registro</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-700">Área</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-700">Sec / Col</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-700">Resumen</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-700 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-700 text-sm">
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 1</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">22 y 15</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">31</td>
-                            </tr>
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 2</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">14 y 7</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">30</td>
-                            </tr>
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 3</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">6 y 23</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">31</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 4</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">4, 64 y 66</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">32</td>
-                            </tr>
+                        <tbody id="tabla-historial" class="text-gray-700 text-sm">
+                            <tr><td colspan="5" class="text-center py-6 text-gray-400 italic">Cargando historial...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-
-            <!-- Día 2 -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-                <div class="bg-brandOrange-500 text-white px-4 py-3 flex items-center justify-between">
-                    <h2 class="text-lg font-bold flex items-center w-full">
-                        <i class="far fa-calendar-alt mr-2 text-brandBlue-600"></i>
-                        <span contenteditable="true" class="editable px-1 w-full">Lunes, 02 / 03 / 2026</span>
-                    </h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-brandOrange-100 text-brandOrange-600 text-sm uppercase">
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 w-1/4">Asignación</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 w-1/2">Manzanas</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 text-center w-1/4">Total Casas</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-700 text-sm">
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 1</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">58, 65 y 30</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">36</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 2</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">60, 29 y 57</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">36</td>
-                            </tr>
-                             <!-- Filas extra vacías listas para usarse si se necesitan -->
-                             <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 3</td>
-                                <td class="py-3 px-4 editable" contenteditable="true"></td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true"></td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 4</td>
-                                <td class="py-3 px-4 editable" contenteditable="true"></td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Día 3 -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-                <div class="bg-brandBlue-500 text-white px-4 py-3 flex items-center justify-between">
-                    <h2 class="text-lg font-bold flex items-center w-full">
-                        <i class="far fa-calendar-alt mr-2 text-brandOrange-500"></i>
-                        <span contenteditable="true" class="editable px-1 w-full">Martes, 03 / 03 / 2026</span>
-                    </h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-brandBlue-100 text-brandBlue-600 text-sm uppercase">
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 w-1/4">Asignación</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 w-1/2">Manzanas</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 text-center w-1/4">Total Casas</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-700 text-sm">
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 1</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">16, 21 y 31</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">29</td>
-                            </tr>
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 2</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">17, 26 y 33</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">32</td>
-                            </tr>
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 3</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">2, 3 y 5</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">32</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 4</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">36 y 34</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">34</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Día 4 -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-                <div class="bg-brandOrange-500 text-white px-4 py-3 flex items-center justify-between">
-                    <h2 class="text-lg font-bold flex items-center w-full">
-                        <i class="far fa-calendar-alt mr-2 text-brandBlue-600"></i>
-                        <span contenteditable="true" class="editable px-1 w-full">Miércoles, 04 / 03 / 2026</span>
-                    </h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-brandOrange-100 text-brandOrange-600 text-sm uppercase">
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 w-1/4">Asignación</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 w-1/2">Manzanas</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-200 text-center w-1/4">Total Casas</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-700 text-sm">
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 1</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">8, 9 y 38</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">42</td>
-                            </tr>
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 2</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">27</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">43</td>
-                            </tr>
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 3</td>
-                                <td class="py-3 px-4 editable" contenteditable="true">20, 19 y 10</td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">43</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo 4</td>
-                                <td class="py-3 px-4 text-gray-500 italic editable" contenteditable="true"></td>
-                                <td class="py-3 px-4 text-center font-bold text-brandOrange-500 editable" contenteditable="true">39</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <!-- Script de funcionalidad de captura y limpieza de formato -->
-    <script>
-        // Asegurarse de que al pegar texto no se arrastren estilos raros
-        document.querySelectorAll('[contenteditable="true"]').forEach(element => {
-            element.addEventListener('paste', function(e) {
-                e.preventDefault();
-                var text = (e.originalEvent || e).clipboardData.getData('text/plain');
-                document.execCommand('insertText', false, text);
-            });
-        });
+    <!-- CONTENEDOR: CALENDARIO VIRTUAL GENERAL -->
+    <div id="contenedor-calendario" class="tab-content hidden">
+        <div id="contenido-a-descargar-calendario" class="max-w-7xl mx-auto bg-gray-100 p-4 rounded-xl captura-objetivo">
+            <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-purple-500 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-purple-700 uppercase tracking-wide">
+                        <i class="fas fa-calendar-alt mr-2"></i> Resumen General de Programación
+                    </h1>
+                    <p class="text-gray-500 mt-2 font-medium text-lg">Visión consolidada de todas las áreas de trabajo activas</p>
+                </div>
+                <button onclick="limpiarTodasLasAreas()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2 px-4 rounded-lg shadow-sm flex items-center transition-colors text-sm" data-html2canvas-ignore="true">
+                    <i class="fas fa-dumpster-fire mr-2"></i> Borrar Todo
+                </button>
+            </header>
+            <div id="grid-calendario-general"></div>
+        </div>
+    </div>
 
-        function descargarImagen() {
-            // Quitar el foco de cualquier elemento que estemos editando
-            if (document.activeElement) {
-                document.activeElement.blur();
+    <!-- SCRIPT DE FIREBASE Y ALMACENAMIENTO -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variables Globales de Estado
+        window.historialGuardado = []; 
+        let db = null;
+        let auth = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'programacion-js6';
+
+        const initFirebase = async () => {
+            try {
+                if (typeof __firebase_config !== 'undefined') {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+
+                    // 1. Esperar a que la autenticación termine ANTES de cualquier consulta
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    const user = auth.currentUser;
+                    if (!user) return;
+
+                    // 2. Configurar el listener de Firestore
+                    const historialRef = collection(db, 'artifacts', appId, 'public', 'data', 'historial_programacion');
+                    
+                    onSnapshot(historialRef, (snapshot) => {
+                        window.historialGuardado = [];
+                        snapshot.forEach((doc) => {
+                            window.historialGuardado.push({ id: doc.id, ...doc.data() });
+                        });
+                        // Ordenar descendente (más recientes primero)
+                        window.historialGuardado.sort((a, b) => {
+                            const timeA = a.timestamp || 0;
+                            const timeB = b.timestamp || 0;
+                            return timeB - timeA;
+                        });
+                        window.renderizarHistorial();
+                    }, (error) => {
+                        console.error("Error cargando historial:", error);
+                        window.renderizarHistorial();
+                    });
+
+                } else {
+                    window.renderizarHistorial(); // Fallback in-memory
+                }
+            } catch(e) {
+                console.warn("Firebase no disponible. Funcionando en modo local.", e);
+                window.renderizarHistorial();
+            }
+        };
+
+        initFirebase();
+
+        // Función global para Guardar en Firestore
+        window.guardarEnNube = async (datosArea) => {
+            const timestamp = Date.now();
+            const fechaActual = new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+            
+            const registro = {
+                ...datosArea,
+                fechaGuardado: fechaActual,
+                timestamp: timestamp
+            };
+
+            if (db && auth && auth.currentUser) {
+                try {
+                    const historialRef = collection(db, 'artifacts', appId, 'public', 'data', 'historial_programacion');
+                    await addDoc(historialRef, registro);
+                    window.mostrarModal("¡Guardado!", "La programación se guardó en el historial exitosamente.", "success");
+                } catch (error) {
+                    console.error("Error guardando:", error);
+                    window.mostrarModal("Error", "No se pudo guardar en la nube.", "error");
+                }
+            } else {
+                // Fallback In-Memory si no hay BD
+                window.historialGuardado.unshift(registro);
+                window.renderizarHistorial();
+                window.mostrarModal("¡Guardado Localmente!", "Guardado temporalmente (se perderá al recargar sin BD).", "success");
+            }
+        };
+
+        // Función global para Eliminar de Firestore
+        window.eliminarDeNube = async (id) => {
+            if (db && auth && auth.currentUser) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'historial_programacion', id));
+                } catch (error) {
+                    console.error("Error eliminando:", error);
+                }
+            } else {
+                // Fallback In-Memory
+                window.historialGuardado = window.historialGuardado.filter(item => item.id !== id);
+                window.renderizarHistorial();
+            }
+        };
+    </script>
+
+    <!-- SCRIPT DE LÓGICA DE UI Y CONTROL -->
+    <script>
+        // ==== CONFIGURACIÓN IMPORTANTE ====
+        // Pega aquí la URL de tu Web App de Google Apps Script
+        const GOOGLE_SHEETS_URL = ""; 
+        // ==================================
+
+        const diasSemana = [
+            { nombre: "Lunes", fecha: "02 / 03 / 2026" },
+            { nombre: "Martes", fecha: "03 / 03 / 2026" },
+            { nombre: "Miércoles", fecha: "04 / 03 / 2026" },
+            { nombre: "Jueves", fecha: "05 / 03 / 2026" },
+            { nombre: "Viernes", fecha: "06 / 03 / 2026" }
+        ];
+
+        const areasInfo = [
+            { id: 'lazarocardenas', nombre: 'CSU Lázaro Cárdenas', apps: 4, claseCSS: 'cal-area-lazarocardenas text-brandBlue-600' },
+            { id: 'brigada', nombre: 'Brigada JS6', apps: 10, claseCSS: 'cal-area-brigada text-brandOrange-600' },
+            { id: 'salinas', nombre: 'CSU Carlos Salinas', apps: 4, claseCSS: 'cal-area-salinas text-emerald-800' },
+            { id: 'foraneas', nombre: 'Unidades Foráneas', apps: 7, claseCSS: 'cal-area-foraneas text-red-800' },
+            { id: 'entomologia', nombre: 'Entomología', apps: 3, claseCSS: 'cal-area-entomologia text-violet-800' }
+        ];
+
+        // --- SISTEMA DE MODALES (REEMPLAZO DE ALERTS/CONFIRMS) ---
+        window.mostrarModal = (titulo, mensaje, tipo = 'info', onConfirm = null) => {
+            const modal = document.getElementById('custom-modal');
+            const titleEl = document.getElementById('modal-title');
+            const msgEl = document.getElementById('modal-msg');
+            const buttonsEl = document.getElementById('modal-buttons');
+            
+            let icon = '';
+            if(tipo === 'error') icon = '<i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>';
+            if(tipo === 'success') icon = '<i class="fas fa-check-circle text-green-500 mr-2"></i>';
+            if(tipo === 'warning') icon = '<i class="fas fa-exclamation-circle text-orange-500 mr-2"></i>';
+            
+            titleEl.innerHTML = icon + titulo;
+            msgEl.innerText = mensaje;
+            buttonsEl.innerHTML = '';
+
+            const btnCerrar = document.createElement('button');
+            btnCerrar.className = "px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors font-medium";
+            btnCerrar.innerText = onConfirm ? "Cancelar" : "Entendido";
+            btnCerrar.onclick = () => modal.classList.add('hidden');
+            buttonsEl.appendChild(btnCerrar);
+
+            if (onConfirm) {
+                const btnOk = document.createElement('button');
+                btnOk.className = "px-4 py-2 bg-brandBlue-500 hover:bg-brandBlue-600 text-white rounded-lg transition-colors font-medium shadow-sm";
+                if(tipo === 'warning' || tipo === 'error') btnOk.className = "px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium shadow-sm";
+                btnOk.innerText = "Confirmar";
+                btnOk.onclick = () => {
+                    modal.classList.add('hidden');
+                    onConfirm();
+                };
+                buttonsEl.appendChild(btnOk);
             }
 
-            const btn = document.querySelector('button');
+            modal.classList.remove('hidden');
+        };
+
+        // Generar Contenedores HTML Dinámicamente para limpiar el archivo
+        function inicializarContenedores() {
+            const containerGeneral = document.getElementById('contenedores-areas');
+            let htmlTotal = '';
+
+            areasInfo.forEach(area => {
+                const isBlock = area.id === 'lazarocardenas' ? 'block' : 'hidden';
+                htmlTotal += `
+                <div id="contenedor-${area.id}" class="tab-content ${isBlock}">
+                    <div id="contenido-a-descargar-${area.id}" class="max-w-5xl mx-auto bg-gray-100 p-4 rounded-xl captura-objetivo">
+                        <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-brandOrange-500 p-4 md:p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
+                            <div>
+                                <h1 class="text-2xl md:text-3xl font-bold text-brandBlue-600 uppercase tracking-wide">Prog. ${area.nombre}</h1>
+                                <p class="text-gray-500 mt-2 font-medium text-lg flex flex-wrap items-center gap-y-2">
+                                    <span class="flex items-center mr-4">
+                                        <i class="fas fa-map-marker-alt text-brandOrange-500 mr-2"></i>
+                                        Sector <span contenteditable="true" class="sector-texto editable ml-1 font-bold px-1 text-gray-800">179</span>
+                                    </span>
+                                    <span class="hidden sm:inline-block text-gray-300 mr-4">|</span>
+                                    <span class="flex items-center">
+                                        <i class="fas fa-city text-brandBlue-600 mr-2"></i>
+                                        Colonia <span contenteditable="true" class="colonia-texto editable ml-1 font-bold px-1 text-brandBlue-600">Escribe Colonia</span>
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="flex flex-wrap gap-2" data-html2canvas-ignore="true">
+                                <button onclick="procesarGuardado('${area.id}')" class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-3 rounded shadow-sm text-sm transition-colors">
+                                    <i class="fas fa-save mr-1"></i> Guardar Registro
+                                </button>
+                                <button onclick="enviarASheets('${area.id}')" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-3 rounded shadow-sm text-sm transition-colors">
+                                    <i class="fas fa-file-excel mr-1"></i> Enviar Sheets
+                                </button>
+                                <button onclick="limpiarDatos('${area.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2 px-3 rounded shadow-sm text-sm transition-colors">
+                                    <i class="fas fa-eraser mr-1"></i> Borrar
+                                </button>
+                            </div>
+                        </header>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="grid-${area.id}"></div>
+                    </div>
+                </div>`;
+            });
+            containerGeneral.innerHTML = htmlTotal;
+
+            // Rellenar las grillas internas
+            areasInfo.forEach(area => generarTarjetas(`grid-${area.id}`, area.apps));
+        }
+
+        // Generar las tablas por día
+        function generarTarjetas(idContenedor, numAplicativos) {
+            const grid = document.getElementById(idContenedor);
+            let html = "";
+            diasSemana.forEach((dia, index) => {
+                let rows = "";
+                for(let i=1; i<=numAplicativos; i++) {
+                    rows += `
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-2 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo ${i}</td>
+                        <td class="py-2 px-4 editable manzanas-input" contenteditable="true"></td>
+                        <td class="py-2 px-4 text-center font-bold text-brandOrange-500 editable totales-input" contenteditable="true"></td>
+                    </tr>`;
+                }
+
+                const isPar = index % 2 === 0;
+                const headerColor = isPar ? 'bg-brandBlue-500' : 'bg-brandOrange-500';
+                const iconColor = isPar ? 'text-brandOrange-100' : 'text-brandBlue-100';
+                const thColor = isPar ? 'bg-brandBlue-100 text-brandBlue-600' : 'bg-brandOrange-100 text-brandOrange-600';
+
+                html += `
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 dia-card">
+                    <div class="${headerColor} text-white px-4 py-3 flex items-center justify-between">
+                        <h2 class="text-lg font-bold flex items-center w-full">
+                            <i class="far fa-calendar-alt mr-2 ${iconColor}"></i>
+                            <span contenteditable="true" class="fecha-editable editable px-1 w-full">${dia.nombre}, ${dia.fecha}</span>
+                        </h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="${thColor} text-sm uppercase">
+                                    <th class="py-2 px-4 font-semibold border-b border-gray-200 w-1/4">Asignación</th>
+                                    <th class="py-2 px-4 font-semibold border-b border-gray-200 w-1/2">Manzanas</th>
+                                    <th class="py-2 px-4 font-semibold border-b border-gray-200 text-center w-1/4">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700 text-sm">${rows}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+            });
+            grid.innerHTML = html;
+        }
+
+        window.onload = () => {
+            inicializarContenedores();
+            
+            // Prevenir pegado con estilos
+            document.addEventListener('paste', function(e) {
+                if(e.target.isContentEditable) {
+                    e.preventDefault();
+                    var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                    document.execCommand('insertText', false, text);
+                }
+            });
+        };
+
+        // --- EXTRACCIÓN DE DATOS PARA GUARDAR / SHEETS ---
+        function extraerDatosArea(idArea) {
+            const contenedor = document.getElementById('contenido-a-descargar-' + idArea);
+            const sector = contenedor.querySelector('.sector-texto').innerText.trim() || 'S/N';
+            const colonia = contenedor.querySelector('.colonia-texto').innerText.trim() || 'S/N';
+            const infoArea = areasInfo.find(a => a.id === idArea);
+            
+            let conteoTareas = 0;
+            const diasCards = contenedor.querySelectorAll('.dia-card');
+            
+            diasCards.forEach(card => {
+                const filas = card.querySelectorAll('tbody tr');
+                filas.forEach(fila => {
+                    const manz = fila.querySelectorAll('td')[1].innerText.trim();
+                    if (manz !== '') conteoTareas++;
+                });
+            });
+
+            return {
+                areaId: idArea,
+                area: infoArea.nombre,
+                sector: sector,
+                colonia: colonia,
+                resumenTareas: `${conteoTareas} tareas programadas en la semana.`
+            };
+        }
+
+        // --- BOTONES DE GUARDADO Y SHEETS ---
+        window.procesarGuardado = (idArea) => {
+            window.mostrarModal("Guardar Programación", "¿Deseas guardar una copia exacta de esta programación en el historial?", "info", () => {
+                const datos = extraerDatosArea(idArea);
+                if(window.guardarEnNube) {
+                    window.guardarEnNube(datos);
+                }
+            });
+        };
+
+        window.enviarASheets = async (idArea) => {
+            if (!GOOGLE_SHEETS_URL || GOOGLE_SHEETS_URL.trim() === "") {
+                window.mostrarModal("Falta Configuración", "Para usar esta función, debes crear un script en Google Sheets y pegar la URL en el código (línea ~660). Revisa las instrucciones que te di en el chat.", "warning");
+                return;
+            }
+
+            const datos = extraerDatosArea(idArea);
+            datos.fechaGuardado = new Date().toLocaleString('es-MX');
+
+            try {
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Evita errores de CORS de Google
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+                window.mostrarModal("¡Enviado a Sheets!", "La información ha sido enviada a tu Google Sheets.", "success");
+            } catch (error) {
+                console.error("Error enviando a sheets:", error);
+                window.mostrarModal("Error", "Ocurrió un error al contactar a Google Sheets.", "error");
+            }
+        };
+
+        // --- RENDERIZADO DEL HISTORIAL ---
+        window.renderizarHistorial = () => {
+            const tbody = document.getElementById('tabla-historial');
+            if(!tbody) return;
+
+            if(!window.historialGuardado || window.historialGuardado.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-400 italic">No hay programaciones guardadas en el historial.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            window.historialGuardado.forEach((reg) => {
+                html += `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4 text-sm font-medium text-gray-800"><i class="far fa-clock text-gray-400 mr-2"></i>${reg.fechaGuardado}</td>
+                    <td class="py-3 px-4 text-sm font-bold text-brandBlue-600">${reg.area}</td>
+                    <td class="py-3 px-4 text-sm text-gray-700">Sec: ${reg.sector} | Col: ${reg.colonia}</td>
+                    <td class="py-3 px-4 text-sm text-gray-500 italic">${reg.resumenTareas}</td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="borrarRegistro('${reg.id}')" class="text-red-500 hover:text-red-700 p-1" title="Eliminar del Historial">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        };
+
+        window.borrarRegistro = (id) => {
+            window.mostrarModal("Borrar Registro", "¿Estás seguro de que quieres eliminar este registro del historial?", "warning", () => {
+                if(window.eliminarDeNube) window.eliminarDeNube(id);
+            });
+        };
+
+        // --- LIMPIEZA DE DATOS ---
+        window.limpiarDatos = (idArea) => {
+            window.mostrarModal("Borrar Datos", "¿Estás seguro de que quieres borrar las manzanas y totales de esta pestaña?", "warning", () => {
+                const contenedor = document.getElementById('contenido-a-descargar-' + idArea);
+                contenedor.querySelector('.sector-texto').innerText = '179';
+                contenedor.querySelector('.colonia-texto').innerText = 'Escribe Colonia';
+                contenedor.querySelectorAll('.manzanas-input').forEach(c => c.innerText = '');
+                contenedor.querySelectorAll('.totales-input').forEach(c => c.innerText = '');
+            });
+        };
+
+        window.limpiarTodasLasAreas = () => {
+            window.mostrarModal("Borrar Todo", "⚠️ ATENCIÓN: ¿Seguro que quieres borrar la información en progreso de TODAS las áreas?", "error", () => {
+                areasInfo.forEach(area => {
+                    const contenedor = document.getElementById('contenido-a-descargar-' + area.id);
+                    if(contenedor) {
+                        contenedor.querySelector('.sector-texto').innerText = '179';
+                        contenedor.querySelector('.colonia-texto').innerText = 'Escribe Colonia';
+                        contenedor.querySelectorAll('.manzanas-input').forEach(c => c.innerText = '');
+                        contenedor.querySelectorAll('.totales-input').forEach(c => c.innerText = '');
+                    }
+                });
+                actualizarVistaCalendario();
+            });
+        };
+
+        // --- VISTA CALENDARIO GENERAL ---
+        function actualizarVistaCalendario() {
+            const gridCal = document.getElementById('grid-calendario-general');
+            let html = '<div class="grid grid-cols-1 lg:grid-cols-5 gap-4">';
+
+            diasSemana.forEach((dia, diaIndex) => {
+                html += `
+                <div class="bg-white rounded-lg shadow border border-gray-200 p-4 min-h-[300px]">
+                    <h3 class="font-bold text-center border-b-2 border-gray-100 pb-2 mb-4 text-gray-700 uppercase">
+                        ${dia.nombre}
+                        <span class="block text-xs text-gray-500 font-normal mt-1">${dia.fecha}</span>
+                    </h3>
+                    <div class="flex flex-col gap-3">`;
+
+                let hayTareasEnElDia = false;
+
+                areasInfo.forEach(area => {
+                    const contInfo = document.getElementById('contenido-a-descargar-' + area.id);
+                    if (!contInfo) return;
+
+                    const sector = contInfo.querySelector('.sector-texto').innerText.trim() || 'S/N';
+                    const colonia = contInfo.querySelector('.colonia-texto').innerText.trim() || 'S/N';
+                    
+                    const diaCards = contInfo.querySelectorAll('.dia-card');
+                    if (diaCards.length > diaIndex) {
+                        const targetCard = diaCards[diaIndex];
+                        let tareasHtml = '';
+                        
+                        const filas = targetCard.querySelectorAll('tbody tr');
+                        filas.forEach(fila => {
+                            const tds = fila.querySelectorAll('td');
+                            const app = tds[0].innerText.trim();
+                            const manz = tds[1].innerText.trim();
+                            const total = tds[2].innerText.trim();
+                            
+                            if (manz && manz !== '') {
+                                tareasHtml += `<li class="text-xs mb-1"><strong>${app}:</strong> Mz ${manz} <span class="text-gray-500">(T:${total})</span></li>`;
+                            }
+                        });
+
+                        if (tareasHtml !== '') {
+                            hayTareasEnElDia = true;
+                            html += `
+                            <div class="p-3 rounded border shadow-sm ${area.claseCSS}">
+                                <div class="font-bold text-xs uppercase mb-1 flex items-center">
+                                    <i class="fas fa-users mr-1"></i> ${area.nombre}
+                                </div>
+                                <div class="text-[11px] italic mb-2 opacity-80 border-b border-black/10 pb-1">
+                                    Sec: ${sector} | Col: ${colonia}
+                                </div>
+                                <ul class="list-disc pl-3">
+                                    ${tareasHtml}
+                                </ul>
+                            </div>`;
+                        }
+                    }
+                });
+
+                if(!hayTareasEnElDia) {
+                    html += `<div class="text-center text-sm text-gray-400 italic mt-10">Sin programación</div>`;
+                }
+                html += `</div></div>`;
+            });
+            html += '</div>';
+            gridCal.innerHTML = html;
+        }
+
+        // --- NAVEGACIÓN DE PESTAÑAS ---
+        window.cambiarPestana = (idArea) => {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm";
+            });
+
+            if(idArea === 'calendario') {
+                actualizarVistaCalendario();
+                document.getElementById('tab-btn-calendario').className = "tab-btn px-4 py-2 bg-purple-600 text-white font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm ml-auto";
+            } else if (idArea === 'historial') {
+                document.getElementById('tab-btn-historial').className = "tab-btn px-4 py-2 bg-gray-800 text-white font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm";
+                document.getElementById('tab-btn-calendario').className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm ml-auto";
+            } else {
+                document.getElementById('tab-btn-' + idArea).className = "tab-btn px-4 py-2 bg-brandBlue-600 text-white font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm";
+                document.getElementById('tab-btn-calendario').className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg transition-colors shadow-sm text-xs sm:text-sm ml-auto";
+            }
+
+            const contenedor = document.getElementById('contenedor-' + idArea);
+            if(contenedor) {
+                contenedor.classList.remove('hidden');
+                contenedor.classList.add('block');
+            }
+        };
+
+        function getPestanaActiva() {
+            const tabs = ['lazarocardenas', 'brigada', 'salinas', 'foraneas', 'entomologia', 'calendario', 'historial'];
+            let activa = tabs[0];
+            tabs.forEach(tab => {
+                const el = document.getElementById('contenedor-' + tab);
+                if(el && el.classList.contains('block')) activa = tab;
+            });
+            return activa;
+        }
+
+        // --- EXPORTACIÓN DE IMAGEN E ICS ---
+        window.descargarImagen = () => {
+            if (document.activeElement) document.activeElement.blur();
+            const areaActiva = getPestanaActiva();
+            
+            if (areaActiva === 'historial') {
+                window.mostrarModal("No disponible", "La pestaña de Historial no se puede descargar como imagen.", "warning");
+                return;
+            }
+
+            const btn = document.querySelector('button[onclick="descargarImagen()"]');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Generando...';
             
-            const elemento = document.getElementById('contenido-a-descargar');
+            const elemento = document.getElementById('contenido-a-descargar-' + areaActiva);
             
-            // html2canvas toma la "foto"
-            html2canvas(elemento, {
-                scale: 2, // Calidad HD
-                backgroundColor: '#f3f4f6', 
-                useCORS: true
-            }).then(canvas => {
+            html2canvas(elemento, { scale: 2, backgroundColor: '#f3f4f6', useCORS: true }).then(canvas => {
                 const link = document.createElement('a');
-                // Nombre del archivo dinámico dependiendo del sector
-                const sectorNum = document.getElementById('sector-texto').innerText.trim() || 'Desconocido';
-                link.download = `Programacion_Sector_${sectorNum}.png`;
+                let nombreArchivo = `Programacion_${areaActiva.toUpperCase()}.png`;
+                if(areaActiva !== 'calendario') {
+                    const sectorElement = elemento.querySelector('.sector-texto');
+                    const sectorNum = sectorElement ? sectorElement.innerText.trim() : 'S/N';
+                    nombreArchivo = `Programacion_${areaActiva.toUpperCase()}_Sector_${sectorNum}.png`;
+                } else {
+                    nombreArchivo = `Resumen_Calendario_General.png`;
+                }
+                link.download = nombreArchivo;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 btn.innerHTML = originalText;
             }).catch(err => {
-                console.error('Error al generar la imagen', err);
+                console.error('Error', err);
                 btn.innerHTML = '<i class="fas fa-times mr-2"></i> Error';
                 setTimeout(() => { btn.innerHTML = originalText; }, 3000);
             });
-        }
+        };
+
+        window.exportarCalendario = () => {
+            const areaActiva = getPestanaActiva();
+            if (areaActiva === 'historial') {
+                window.mostrarModal("No disponible", "Ve a un área o al Calendario para exportar a .ICS", "warning");
+                return;
+            }
+
+            let icsMSG = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Programacion de Trabajo//ES\n";
+            let nombreArchivoDescarga = "";
+
+            const procesarAreaParaICS = (idArea, tituloGeneral) => {
+                const contenedor = document.getElementById('contenido-a-descargar-' + idArea);
+                if(!contenedor) return;
+                const sector = contenedor.querySelector('.sector-texto').innerText.trim() || 'S/N';
+                const colonia = contenedor.querySelector('.colonia-texto').innerText.trim() || 'Sin Colonia';
+                const tituloArea = contenedor.querySelector('h1').innerText.trim();
+                const tituloFinal = tituloGeneral ? `[${tituloGeneral}] ${tituloArea}` : tituloArea;
+
+                contenedor.querySelectorAll('.dia-card').forEach(card => {
+                    const fechaTexto = card.querySelector('.fecha-editable').innerText.trim();
+                    let dateStr = "";
+                    try {
+                        const partes = fechaTexto.split(',');
+                        if(partes.length > 1) {
+                            const dp = partes[1].split('/');
+                            dateStr = `${dp[2].trim()}${dp[1].trim().padStart(2,'0')}${dp[0].trim().padStart(2,'0')}`;
+                        } else { dateStr = new Date().toISOString().slice(0,10).replace(/-/g,""); }
+                    } catch(e) { dateStr = new Date().toISOString().slice(0,10).replace(/-/g,""); }
+
+                    let descripcion = `Tareas en Sector ${sector}, Colonia ${colonia}\\n\\n`;
+                    card.querySelectorAll('tbody tr').forEach(fila => {
+                        const tds = fila.querySelectorAll('td');
+                        const manz = tds[1].innerText.trim();
+                        if (manz.length > 0) descripcion += `👉 ${tds[0].innerText.trim()}: Manzanas ${manz} (Total: ${tds[2].innerText.trim()})\\n`;
+                    });
+
+                    if(descripcion.includes('👉')) {
+                        icsMSG += "BEGIN:VEVENT\nDTSTART;VALUE=DATE:" + dateStr + "\nDTEND;VALUE=DATE:" + dateStr + "\nSUMMARY:" + tituloFinal + " - Sec " + sector + "\nDESCRIPTION:" + descripcion + "\nEND:VEVENT\n";
+                    }
+                });
+            };
+
+            if(areaActiva === 'calendario') {
+                areasInfo.forEach(area => procesarAreaParaICS(area.id, area.nombre));
+                nombreArchivoDescarga = `Calendario_General_Todas_Areas.ics`;
+            } else {
+                procesarAreaParaICS(areaActiva, "");
+                nombreArchivoDescarga = `Calendario_${areaActiva}.ics`;
+            }
+
+            icsMSG += "END:VCALENDAR";
+            const blob = new Blob([icsMSG], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = nombreArchivoDescarga;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
     </script>
 </body>
 </html>
