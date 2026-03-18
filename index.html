@@ -60,6 +60,27 @@
         </div>
     </div>
 
+    <!-- Modal para Ver Detalle de Programación (NUEVO) -->
+    <div id="modal-detalle" class="hidden fixed inset-0 bg-black/60 z-[60] flex items-center justify-center backdrop-blur-sm p-4" data-html2canvas-ignore="true">
+        <div class="bg-gray-50 p-0 rounded-xl max-w-5xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
+            <div class="bg-gray-800 p-4 flex justify-between items-center text-white">
+                <div>
+                    <h3 id="detalle-titulo" class="text-xl font-bold uppercase"></h3>
+                    <p id="detalle-subtitulo" class="text-sm text-gray-300"></p>
+                </div>
+                <button onclick="document.getElementById('modal-detalle').classList.add('hidden')" class="text-gray-300 hover:text-white transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="detalle-contenido" class="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Cards de los días se inyectan aquí -->
+            </div>
+            <div class="bg-gray-200 p-4 flex justify-end">
+                <button onclick="document.getElementById('modal-detalle').classList.add('hidden')" class="px-6 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded shadow transition-colors">Cerrar Visualización</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Instrucciones y Botones Generales -->
     <div class="max-w-7xl mx-auto mb-4 flex flex-col md:flex-row justify-between items-center gap-4" data-html2canvas-ignore="true">
         <div class="bg-blue-50 text-brandBlue-600 px-4 py-3 rounded-lg border border-blue-200 flex-1 flex items-center shadow-sm w-full">
@@ -114,11 +135,17 @@
     <div id="contenedor-historial" class="tab-content hidden">
         <div class="max-w-7xl mx-auto bg-gray-100 p-4 rounded-xl captura-objetivo">
             <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-gray-800 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-                <div>
+                <div class="w-full">
                     <h1 class="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wide">
                         <i class="fas fa-archive mr-2"></i> Historial de Programaciones
                     </h1>
                     <p class="text-gray-500 mt-2 font-medium text-lg">Registro de todas las programaciones guardadas con fecha y hora.</p>
+                    
+                    <!-- BUSCADOR AÑADIDO -->
+                    <div class="mt-4 max-w-md relative" data-html2canvas-ignore="true">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="buscador-historial" oninput="filtrarHistorial()" placeholder="Buscar por Sector o Folio..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brandBlue-500 focus:border-brandBlue-500 outline-none transition-all shadow-sm">
+                    </div>
                 </div>
             </header>
             
@@ -128,6 +155,7 @@
                         <thead>
                             <tr class="bg-gray-800 text-white text-sm uppercase">
                                 <th class="py-3 px-4 font-semibold border-b border-gray-700">Fecha de Registro</th>
+                                <th class="py-3 px-4 font-semibold border-b border-gray-700">Folio</th>
                                 <th class="py-3 px-4 font-semibold border-b border-gray-700">Área</th>
                                 <th class="py-3 px-4 font-semibold border-b border-gray-700">Sec / Col</th>
                                 <th class="py-3 px-4 font-semibold border-b border-gray-700">Resumen</th>
@@ -135,7 +163,7 @@
                             </tr>
                         </thead>
                         <tbody id="tabla-historial" class="text-gray-700 text-sm">
-                            <tr><td colspan="5" class="text-center py-6 text-gray-400 italic">Cargando historial...</td></tr>
+                            <tr><td colspan="6" class="text-center py-6 text-gray-400 italic">Cargando historial...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -349,6 +377,11 @@
                                         <i class="fas fa-city text-brandBlue-600 mr-2"></i>
                                         Colonia <span contenteditable="true" class="colonia-texto editable ml-1 font-bold px-1 text-brandBlue-600">Escribe Colonia</span>
                                     </span>
+                                    <span class="hidden sm:inline-block text-gray-300 mx-2">|</span>
+                                    <span class="flex items-center" title="Llenar posterior a la realización de las acciones">
+                                        <i class="fas fa-file-invoice text-purple-500 mr-2"></i>
+                                        Folio Operativo <span contenteditable="true" class="folio-texto editable ml-1 font-bold px-1 text-purple-700">S/N</span>
+                                    </span>
                                 </p>
                             </div>
                             <div class="flex flex-wrap gap-2" data-html2canvas-ignore="true">
@@ -369,29 +402,83 @@
             });
             containerGeneral.innerHTML = htmlTotal;
 
-            // Rellenar las grillas internas
-            areasInfo.forEach(area => generarTarjetas(`grid-${area.id}`, area.apps));
+            // Rellenar las grillas internas pasando el idArea para aplicar formatos especiales
+            areasInfo.forEach(area => generarTarjetas(`grid-${area.id}`, area.apps, area.id));
         }
 
-        // Generar las tablas por día
-        function generarTarjetas(idContenedor, numAplicativos) {
+        // Generar las tablas por día (Adaptado para Entomología)
+        function generarTarjetas(idContenedor, numAplicativos, idArea) {
             const grid = document.getElementById(idContenedor);
             let html = "";
+            const isEntomo = idArea === 'entomologia';
+
             diasSemana.forEach((dia, index) => {
                 let rows = "";
                 for(let i=1; i<=numAplicativos; i++) {
-                    rows += `
-                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                        <td class="py-2 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo ${i}</td>
-                        <td class="py-2 px-4 editable manzanas-input" contenteditable="true"></td>
-                        <td class="py-2 px-4 text-center font-bold text-brandOrange-500 editable totales-input" contenteditable="true"></td>
-                    </tr>`;
+                    if (isEntomo) {
+                        // Fila especial para Entomología
+                        rows += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-2 px-2 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo ${i}</td>
+                            <td class="py-2 px-2">
+                                <select class="tipo-entomologia bg-transparent border-b border-gray-300 outline-none text-xs w-full text-violet-600 font-semibold cursor-pointer">
+                                    <option value="Encuesta">Encuesta</option>
+                                    <option value="Verificación">Verificación</option>
+                                </select>
+                            </td>
+                            <td class="py-2 px-2 editable manzanas-input" contenteditable="true"></td>
+                            <td class="py-2 px-2 text-center font-bold text-violet-500 editable avance-input" contenteditable="true"></td>
+                            <td class="py-2 px-1 text-center" data-html2canvas-ignore="false">
+                                <input type="checkbox" title="Marcar al completar" class="w-4 h-4 cursor-pointer text-violet-600 border-gray-300 rounded focus:ring-violet-500 verificado-checkbox">
+                            </td>
+                        </tr>`;
+                    } else {
+                        // Fila normal
+                        rows += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-2 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo ${i}</td>
+                            <td class="py-2 px-4 editable manzanas-input" contenteditable="true"></td>
+                            <td class="py-2 px-4 text-center font-bold text-brandOrange-500 editable totales-input" contenteditable="true"></td>
+                            <td class="py-2 px-2 text-center" data-html2canvas-ignore="false">
+                                <input type="checkbox" title="Marcar al completar manzanas" class="w-5 h-5 cursor-pointer text-brandBlue-600 border-gray-300 rounded focus:ring-brandBlue-500 verificado-checkbox">
+                            </td>
+                        </tr>`;
+                    }
                 }
 
                 const isPar = index % 2 === 0;
-                const headerColor = isPar ? 'bg-brandBlue-500' : 'bg-brandOrange-500';
-                const iconColor = isPar ? 'text-brandOrange-100' : 'text-brandBlue-100';
-                const thColor = isPar ? 'bg-brandBlue-100 text-brandBlue-600' : 'bg-brandOrange-100 text-brandOrange-600';
+                let headerColor, thColor, iconColor;
+
+                if (isEntomo) {
+                    headerColor = isPar ? 'bg-violet-500' : 'bg-violet-400';
+                    iconColor = isPar ? 'text-violet-100' : 'text-violet-100';
+                    thColor = isPar ? 'bg-violet-100 text-violet-700' : 'bg-violet-50 text-violet-600';
+                } else {
+                    headerColor = isPar ? 'bg-brandBlue-500' : 'bg-brandOrange-500';
+                    iconColor = isPar ? 'text-brandOrange-100' : 'text-brandBlue-100';
+                    thColor = isPar ? 'bg-brandBlue-100 text-brandBlue-600' : 'bg-brandOrange-100 text-brandOrange-600';
+                }
+
+                // Generar encabezados de tabla según el tipo
+                let tableHeaders = "";
+                if (isEntomo) {
+                    tableHeaders = `
+                        <tr class="${thColor} text-xs uppercase">
+                            <th class="py-2 px-2 font-semibold border-b border-gray-200 w-1/5">Asignación</th>
+                            <th class="py-2 px-2 font-semibold border-b border-gray-200 w-1/5">Tipo</th>
+                            <th class="py-2 px-2 font-semibold border-b border-gray-200 w-1/3">Manzanas</th>
+                            <th class="py-2 px-2 font-semibold border-b border-gray-200 text-center w-1/5" title="Casas completadas (Si es Verificación)">Avance</th>
+                            <th class="py-2 px-1 font-semibold border-b border-gray-200 text-center w-1/12"><i class="fas fa-check-double"></i></th>
+                        </tr>`;
+                } else {
+                    tableHeaders = `
+                        <tr class="${thColor} text-sm uppercase">
+                            <th class="py-2 px-4 font-semibold border-b border-gray-200 w-1/4">Asignación</th>
+                            <th class="py-2 px-4 font-semibold border-b border-gray-200 w-1/2">Manzanas</th>
+                            <th class="py-2 px-4 font-semibold border-b border-gray-200 text-center w-1/5">Total</th>
+                            <th class="py-2 px-2 font-semibold border-b border-gray-200 text-center w-1/12" title="Verificación"><i class="fas fa-check-double"></i></th>
+                        </tr>`;
+                }
 
                 html += `
                 <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 dia-card">
@@ -403,13 +490,7 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="${thColor} text-sm uppercase">
-                                    <th class="py-2 px-4 font-semibold border-b border-gray-200 w-1/4">Asignación</th>
-                                    <th class="py-2 px-4 font-semibold border-b border-gray-200 w-1/2">Manzanas</th>
-                                    <th class="py-2 px-4 font-semibold border-b border-gray-200 text-center w-1/4">Total</th>
-                                </tr>
-                            </thead>
+                            <thead>${tableHeaders}</thead>
                             <tbody class="text-gray-700 text-sm">${rows}</tbody>
                         </table>
                     </div>
@@ -436,25 +517,91 @@
             const contenedor = document.getElementById('contenido-a-descargar-' + idArea);
             const sector = contenedor.querySelector('.sector-texto').innerText.trim() || 'S/N';
             const colonia = contenedor.querySelector('.colonia-texto').innerText.trim() || 'S/N';
+            const folio = contenedor.querySelector('.folio-texto').innerText.trim() || 'S/N';
             const infoArea = areasInfo.find(a => a.id === idArea);
+            const isEntomo = idArea === 'entomologia';
             
             let conteoTareas = 0;
+            let manzanasCompletas = [];
+            let manzanasIncompletas = [];
+            let diasData = [];
+            
             const diasCards = contenedor.querySelectorAll('.dia-card');
             
             diasCards.forEach(card => {
+                const fechaTexto = card.querySelector('.fecha-editable').innerText.trim();
+                let diaObj = { fecha: fechaTexto, tareas: [] };
+
                 const filas = card.querySelectorAll('tbody tr');
                 filas.forEach(fila => {
-                    const manz = fila.querySelectorAll('td')[1].innerText.trim();
-                    if (manz !== '') conteoTareas++;
+                    const tds = fila.querySelectorAll('td');
+                    let app = tds[0].innerText.trim();
+                    let manz = '';
+                    let tipo = '';
+                    let totalOrAvance = '';
+                    let completado = false;
+
+                    if (isEntomo) {
+                        const selectEl = tds[1].querySelector('select');
+                        tipo = selectEl ? selectEl.value : '';
+                        manz = tds[2].innerText.trim();
+                        totalOrAvance = tds[3].innerText.trim();
+                        const checkbox = tds[4].querySelector('input[type="checkbox"]');
+                        completado = checkbox ? checkbox.checked : false;
+                    } else {
+                        manz = tds[1].innerText.trim();
+                        totalOrAvance = tds[2].innerText.trim();
+                        const checkbox = tds[3].querySelector('input[type="checkbox"]');
+                        completado = checkbox ? checkbox.checked : false;
+                    }
+
+                    if (manz !== '') {
+                        conteoTareas++;
+                        
+                        let tareaDesc = isEntomo ? `${app} (${tipo})` : app;
+                        diaObj.tareas.push({ 
+                            aplicativo: tareaDesc, 
+                            manzanas: manz, 
+                            total: totalOrAvance, 
+                            completado: completado,
+                            esEntomologia: isEntomo,
+                            tipo: tipo
+                        });
+                        
+                        // Separar para el resumen de historial
+                        let resumenItem = `<b>${tareaDesc}:</b> ${manz} ${totalOrAvance ? `[${totalOrAvance}]` : ''}`;
+                        if (completado) {
+                            manzanasCompletas.push(resumenItem);
+                        } else {
+                            manzanasIncompletas.push(resumenItem);
+                        }
+                    }
                 });
+
+                if(diaObj.tareas.length > 0) diasData.push(diaObj);
             });
+
+            // Construir el resumen enriquecido
+            let resumenDetallado = `<div class="text-xs space-y-1">`;
+            if (manzanasCompletas.length > 0) {
+                resumenDetallado += `<div class="text-green-700"><i class="fas fa-check-circle"></i> Completas: ${manzanasCompletas.join(' | ')}</div>`;
+            }
+            if (manzanasIncompletas.length > 0) {
+                resumenDetallado += `<div class="text-red-600"><i class="fas fa-times-circle"></i> Incompletas: ${manzanasIncompletas.join(' | ')}</div>`;
+            }
+            if (conteoTareas === 0) {
+                resumenDetallado += `<div class="text-gray-500">Sin manzanas asignadas.</div>`;
+            }
+            resumenDetallado += `</div>`;
 
             return {
                 areaId: idArea,
                 area: infoArea.nombre,
                 sector: sector,
                 colonia: colonia,
-                resumenTareas: `${conteoTareas} tareas programadas en la semana.`
+                folio: folio,
+                resumenTareas: resumenDetallado,
+                diasData: diasData // Guardamos toda la matriz para el visualizador
             };
         }
 
@@ -480,7 +627,7 @@
             try {
                 const response = await fetch(GOOGLE_SHEETS_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Evita errores de CORS de Google
+                    mode: 'no-cors', 
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(datos)
                 });
@@ -492,31 +639,113 @@
         };
 
         // --- RENDERIZADO DEL HISTORIAL ---
-        window.renderizarHistorial = () => {
+        window.renderizarHistorial = (datos = window.historialGuardado) => {
             const tbody = document.getElementById('tabla-historial');
             if(!tbody) return;
 
-            if(!window.historialGuardado || window.historialGuardado.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-400 italic">No hay programaciones guardadas en el historial.</td></tr>`;
+            if(!datos || datos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 italic">No hay programaciones guardadas que coincidan.</td></tr>`;
                 return;
             }
 
             let html = '';
-            window.historialGuardado.forEach((reg) => {
+            datos.forEach((reg) => {
                 html += `
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
                     <td class="py-3 px-4 text-sm font-medium text-gray-800"><i class="far fa-clock text-gray-400 mr-2"></i>${reg.fechaGuardado}</td>
+                    <td class="py-3 px-4 text-sm font-bold">
+                        <button onclick="verDetalleRegistro('${reg.id}')" class="text-purple-600 hover:text-purple-800 flex items-center gap-1 bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-full transition-colors" title="Ver programación completa">
+                            <i class="fas fa-eye"></i> ${reg.folio || 'S/N'}
+                        </button>
+                    </td>
                     <td class="py-3 px-4 text-sm font-bold text-brandBlue-600">${reg.area}</td>
                     <td class="py-3 px-4 text-sm text-gray-700">Sec: ${reg.sector} | Col: ${reg.colonia}</td>
-                    <td class="py-3 px-4 text-sm text-gray-500 italic">${reg.resumenTareas}</td>
+                    <td class="py-3 px-4 text-sm text-gray-700">${reg.resumenTareas}</td>
                     <td class="py-3 px-4 text-center">
-                        <button onclick="borrarRegistro('${reg.id}')" class="text-red-500 hover:text-red-700 p-1" title="Eliminar del Historial">
+                        <button onclick="borrarRegistro('${reg.id}')" class="text-red-500 hover:text-red-700 p-2 bg-red-50 hover:bg-red-100 rounded-full transition-colors" title="Eliminar del Historial">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
                 </tr>`;
             });
             tbody.innerHTML = html;
+        };
+
+        // --- NUEVA FUNCIÓN: VER DETALLE DE REGISTRO ---
+        window.verDetalleRegistro = (id) => {
+            const registro = window.historialGuardado.find(r => r.id === id);
+            if(!registro) return;
+
+            const isEntomo = registro.area === 'Entomología';
+
+            document.getElementById('detalle-titulo').innerText = `Folio: ${registro.folio || 'S/N'} - ${registro.area}`;
+            document.getElementById('detalle-subtitulo').innerText = `Sector: ${registro.sector} | Colonia: ${registro.colonia} | Guardado: ${registro.fechaGuardado}`;
+
+            const contenedor = document.getElementById('detalle-contenido');
+            let html = '';
+
+            if(registro.diasData && registro.diasData.length > 0) {
+                registro.diasData.forEach((dia, index) => {
+                    const isPar = index % 2 === 0;
+                    
+                    let headerColor, thColor;
+                    if (isEntomo) {
+                        headerColor = isPar ? 'bg-violet-500' : 'bg-violet-400';
+                        thColor = isPar ? 'bg-violet-100 text-violet-700' : 'bg-violet-50 text-violet-600';
+                    } else {
+                        headerColor = isPar ? 'bg-brandBlue-500' : 'bg-brandOrange-500';
+                        thColor = isPar ? 'bg-brandBlue-100 text-brandBlue-600' : 'bg-brandOrange-100 text-brandOrange-600';
+                    }
+
+                    let rows = '';
+                    dia.tareas.forEach(tarea => {
+                        const iconStatus = tarea.completado
+                            ? '<i class="fas fa-check-circle text-green-500 text-lg"></i>'
+                            : '<i class="fas fa-times-circle text-red-500 text-lg opacity-50"></i>';
+
+                        rows += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-2 px-4 font-medium text-gray-700">${tarea.aplicativo}</td>
+                            <td class="py-2 px-4 text-gray-800 font-bold">${tarea.manzanas}</td>
+                            <td class="py-2 px-4 text-center font-bold ${isEntomo ? 'text-violet-600' : 'text-brandOrange-600'}">${tarea.total}</td>
+                            <td class="py-2 px-4 text-center">${iconStatus}</td>
+                        </tr>`;
+                    });
+
+                    let tableHeaders = isEntomo 
+                        ? `<th class="py-2 px-4 font-semibold w-1/4">Asig. (Tipo)</th><th class="py-2 px-4 font-semibold w-1/2">Manzanas</th><th class="py-2 px-4 font-semibold text-center w-1/6">Avance</th><th class="py-2 px-4 font-semibold text-center w-1/12"><i class="fas fa-check-double"></i></th>`
+                        : `<th class="py-2 px-4 font-semibold w-1/4">Asignación</th><th class="py-2 px-4 font-semibold w-1/2">Manzanas</th><th class="py-2 px-4 font-semibold text-center w-1/6">Total</th><th class="py-2 px-4 font-semibold text-center w-1/12"><i class="fas fa-check-double"></i></th>`;
+
+                    html += `
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-fit">
+                        <div class="${headerColor} text-white px-4 py-3">
+                            <h4 class="font-bold flex items-center"><i class="far fa-calendar-alt mr-2"></i> ${dia.fecha}</h4>
+                        </div>
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="${thColor} uppercase">${tableHeaders}</tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>`;
+                });
+            } else {
+                html = '<div class="col-span-1 md:col-span-2 text-center py-10 text-gray-500 italic">No hay detalles por día guardados para este registro.</div>';
+            }
+
+            contenedor.innerHTML = html;
+            document.getElementById('modal-detalle').classList.remove('hidden');
+        };
+
+        // --- NUEVA FUNCIÓN: FILTRAR HISTORIAL ---
+        window.filtrarHistorial = () => {
+            const termino = document.getElementById('buscador-historial').value.toLowerCase();
+            const filtrados = window.historialGuardado.filter(reg => {
+                const sec = (reg.sector || '').toLowerCase();
+                const fol = (reg.folio || '').toLowerCase();
+                return sec.includes(termino) || fol.includes(termino);
+            });
+            window.renderizarHistorial(filtrados);
         };
 
         window.borrarRegistro = (id) => {
@@ -531,8 +760,12 @@
                 const contenedor = document.getElementById('contenido-a-descargar-' + idArea);
                 contenedor.querySelector('.sector-texto').innerText = '179';
                 contenedor.querySelector('.colonia-texto').innerText = 'Escribe Colonia';
+                contenedor.querySelector('.folio-texto').innerText = 'S/N';
                 contenedor.querySelectorAll('.manzanas-input').forEach(c => c.innerText = '');
                 contenedor.querySelectorAll('.totales-input').forEach(c => c.innerText = '');
+                contenedor.querySelectorAll('.avance-input').forEach(c => c.innerText = '');
+                contenedor.querySelectorAll('.tipo-entomologia').forEach(c => c.value = 'Encuesta');
+                contenedor.querySelectorAll('.verificado-checkbox').forEach(chk => chk.checked = false);
             });
         };
 
@@ -543,8 +776,12 @@
                     if(contenedor) {
                         contenedor.querySelector('.sector-texto').innerText = '179';
                         contenedor.querySelector('.colonia-texto').innerText = 'Escribe Colonia';
+                        contenedor.querySelector('.folio-texto').innerText = 'S/N';
                         contenedor.querySelectorAll('.manzanas-input').forEach(c => c.innerText = '');
                         contenedor.querySelectorAll('.totales-input').forEach(c => c.innerText = '');
+                        contenedor.querySelectorAll('.avance-input').forEach(c => c.innerText = '');
+                        contenedor.querySelectorAll('.tipo-entomologia').forEach(c => c.value = 'Encuesta');
+                        contenedor.querySelectorAll('.verificado-checkbox').forEach(chk => chk.checked = false);
                     }
                 });
                 actualizarVistaCalendario();
@@ -570,7 +807,8 @@
                 areasInfo.forEach(area => {
                     const contInfo = document.getElementById('contenido-a-descargar-' + area.id);
                     if (!contInfo) return;
-
+                    
+                    const isEntomo = area.id === 'entomologia';
                     const sector = contInfo.querySelector('.sector-texto').innerText.trim() || 'S/N';
                     const colonia = contInfo.querySelector('.colonia-texto').innerText.trim() || 'S/N';
                     
@@ -582,21 +820,26 @@
                         const filas = targetCard.querySelectorAll('tbody tr');
                         filas.forEach(fila => {
                             const tds = fila.querySelectorAll('td');
-                            const app = tds[0].innerText.trim();
-                            const manz = tds[1].innerText.trim();
-                            const total = tds[2].innerText.trim();
+                            let app = tds[0].innerText.trim();
+                            let manz = isEntomo ? tds[2].innerText.trim() : tds[1].innerText.trim();
+                            let total = isEntomo ? tds[3].innerText.trim() : tds[2].innerText.trim();
+                            let tipo = isEntomo ? (tds[1].querySelector('select') ? tds[1].querySelector('select').value : '') : '';
                             
                             if (manz && manz !== '') {
-                                tareasHtml += `<li class="text-xs mb-1"><strong>${app}:</strong> Mz ${manz} <span class="text-gray-500">(T:${total})</span></li>`;
+                                let desc = isEntomo 
+                                    ? `<strong>${app} (${tipo}):</strong> Mz ${manz} <span class="text-gray-500">(Avance:${total})</span>` 
+                                    : `<strong>${app}:</strong> Mz ${manz} <span class="text-gray-500">(T:${total})</span>`;
+                                tareasHtml += `<li class="text-xs mb-1">${desc}</li>`;
                             }
                         });
 
                         if (tareasHtml !== '') {
                             hayTareasEnElDia = true;
                             html += `
-                            <div class="p-3 rounded border shadow-sm ${area.claseCSS}">
-                                <div class="font-bold text-xs uppercase mb-1 flex items-center">
-                                    <i class="fas fa-users mr-1"></i> ${area.nombre}
+                            <div class="p-3 rounded border shadow-sm ${area.claseCSS} cursor-pointer hover:shadow-md transform hover:-translate-y-0.5 transition-all" onclick="cambiarPestana('${area.id}')" title="Clic para ir y editar la pestaña de ${area.nombre}">
+                                <div class="font-bold text-xs uppercase mb-1 flex items-center justify-between">
+                                    <span class="flex items-center"><i class="fas fa-users mr-1"></i> ${area.nombre}</span>
+                                    <i class="fas fa-external-link-alt opacity-50"></i>
                                 </div>
                                 <div class="text-[11px] italic mb-2 opacity-80 border-b border-black/10 pb-1">
                                     Sec: ${sector} | Col: ${colonia}
@@ -710,6 +953,7 @@
                 const colonia = contenedor.querySelector('.colonia-texto').innerText.trim() || 'Sin Colonia';
                 const tituloArea = contenedor.querySelector('h1').innerText.trim();
                 const tituloFinal = tituloGeneral ? `[${tituloGeneral}] ${tituloArea}` : tituloArea;
+                const isEntomo = idArea === 'entomologia';
 
                 contenedor.querySelectorAll('.dia-card').forEach(card => {
                     const fechaTexto = card.querySelector('.fecha-editable').innerText.trim();
@@ -725,8 +969,17 @@
                     let descripcion = `Tareas en Sector ${sector}, Colonia ${colonia}\\n\\n`;
                     card.querySelectorAll('tbody tr').forEach(fila => {
                         const tds = fila.querySelectorAll('td');
-                        const manz = tds[1].innerText.trim();
-                        if (manz.length > 0) descripcion += `👉 ${tds[0].innerText.trim()}: Manzanas ${manz} (Total: ${tds[2].innerText.trim()})\\n`;
+                        const app = tds[0].innerText.trim();
+                        const manz = isEntomo ? tds[2].innerText.trim() : tds[1].innerText.trim();
+                        const total = isEntomo ? tds[3].innerText.trim() : tds[2].innerText.trim();
+                        const tipo = isEntomo ? (tds[1].querySelector('select') ? tds[1].querySelector('select').value : '') : '';
+
+                        if (manz.length > 0) {
+                            let desc = isEntomo 
+                                ? `👉 ${app} (${tipo}): Manzanas ${manz} (Avance: ${total})\\n` 
+                                : `👉 ${app}: Manzanas ${manz} (Total: ${total})\\n`;
+                            descripcion += desc;
+                        }
                     });
 
                     if(descripcion.includes('👉')) {
@@ -755,4 +1008,3 @@
     </script>
 </body>
 </html>
-
