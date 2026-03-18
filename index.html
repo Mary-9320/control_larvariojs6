@@ -57,7 +57,7 @@
                 <h3 class="text-xl font-bold text-gray-800">Autorización</h3>
                 <p class="text-sm text-gray-500 mt-1">Ingresa tu clave asignada para editar.</p>
             </div>
-            <input type="password" id="input-clave" class="w-full border-2 border-gray-300 p-3 rounded-lg mb-6 text-center text-2xl tracking-widest focus:border-brandBlue-500 focus:ring-2 focus:ring-brandBlue-100 outline-none transition-all" placeholder="•••">
+            <input type="password" id="input-clave" onkeydown="if(event.key === 'Enter') verificarClave()" class="w-full border-2 border-gray-300 p-3 rounded-lg mb-6 text-center text-2xl tracking-widest focus:border-brandBlue-500 focus:ring-2 focus:ring-brandBlue-100 outline-none transition-all" placeholder="•••">
             <div class="flex justify-end gap-2">
                 <button onclick="cerrarModalClave()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors w-1/2">Cancelar</button>
                 <button onclick="verificarClave()" class="px-4 py-2 bg-brandBlue-600 hover:bg-brandBlue-700 text-white font-medium rounded-lg shadow-sm transition-colors w-1/2">Acceder</button>
@@ -191,8 +191,8 @@
     <!-- SCRIPT DE LÓGICA PRINCIPAL Y CONEXIÓN A GOOGLE SHEETS -->
     <script>
         // =====================================================================
-        // ⚠️ PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT ⚠️
-        const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbzyxdtTDvl9aqlQilM1OqMTseODUL2JRWMXMuVN3XG6DRArCs-N3A75RTFuHpdOSBezRQ/exec"; 
+        // URL DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT
+        const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbzxIbQnM8EE3619wlerCfSwlCUVFlTXH5J8gnV4EufB4MsdWrtjNPkNBKPRa77KbxhMZw/exec"; 
         // =====================================================================
 
         window.historialGuardado = [];
@@ -260,6 +260,7 @@
         window.iniciarEdicion = () => {
             document.getElementById('input-clave').value = '';
             document.getElementById('modal-clave').classList.remove('hidden');
+            setTimeout(() => document.getElementById('input-clave').focus(), 100);
         };
 
         window.cerrarModalClave = () => {
@@ -287,7 +288,7 @@
 
         // --- CARGAR DATOS PARA EDICIÓN EN LA PESTAÑA CORRESPONDIENTE ---
         window.cargarDatosEnFormulario = (id, rol) => {
-            const registro = window.historialGuardado.find(r => r.id === id);
+            const registro = window.historialGuardado.find(r => String(r.id) === String(id));
             if(!registro) return;
             
             window.registroEnEdicion = registro;
@@ -301,18 +302,30 @@
             contenedor.querySelector('.colonia-texto').innerText = registro.colonia || '';
             contenedor.querySelector('.folio-texto').innerText = registro.folio || '';
             
-            // Rellenar las tablas de días
+            const isEntomo = idArea === 'entomologia';
+            const isNeb = idArea === 'nebulizacion';
+            const hasTipo = isEntomo || isNeb;
+
+            // Limpiar inputs previamente para que no se empalme información vieja
+            contenedor.querySelectorAll('.manzanas-input, .totales-input, .avance-input').forEach(el => el.innerText = '');
+            contenedor.querySelectorAll('.verificado-checkbox').forEach(el => el.checked = false);
+            contenedor.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+
+            // Rellenar las tablas de días encontrando el renglón correcto
             const diasCards = contenedor.querySelectorAll('.dia-card');
             registro.diasData.forEach((diaData, index) => {
                 if(index < diasCards.length) {
                     const filas = diasCards[index].querySelectorAll('tbody tr');
-                    diaData.tareas.forEach((tarea, tIndex) => {
-                        if(tIndex < filas.length) {
-                            const tds = filas[tIndex].querySelectorAll('td');
-                            const isEntomo = idArea === 'entomologia';
-                            const isNeb = idArea === 'nebulizacion';
-                            const hasTipo = isEntomo || isNeb;
-                            
+                    diaData.tareas.forEach((tarea) => {
+                        let matchedRow = Array.from(filas).find(fila => {
+                            const cellApp = fila.querySelectorAll('td')[0].innerText.trim();
+                            // Usar originalApp si existe, sino el aplicativo sin los paréntesis del tipo
+                            const targetName = tarea.originalApp || (hasTipo ? tarea.aplicativo.split(' (')[0] : tarea.aplicativo);
+                            return cellApp === targetName;
+                        });
+
+                        if(matchedRow) {
+                            const tds = matchedRow.querySelectorAll('td');
                             if (hasTipo) {
                                 const selectEl = tds[1].querySelector('select');
                                 if(selectEl && tarea.tipo) selectEl.value = tarea.tipo;
@@ -413,7 +426,7 @@
 
                 window.mostrarModal(isEdicion ? "Actualizando..." : "Guardando...", "Enviando datos a la base de datos...", "loading");
                 try {
-                    // Si es edición, primero borramos el viejo en la base de datos
+                    // Si es edición, primero borramos el viejo en la base de datos (con un pequeño delay para evitar que Google Sheets falle)
                     if (isEdicion) {
                         await fetch(GOOGLE_SHEETS_URL, {
                             method: 'POST',
@@ -421,6 +434,7 @@
                             headers: { 'Content-Type': 'text/plain' },
                             body: JSON.stringify({ action: 'delete', id: datos.id })
                         });
+                        await new Promise(r => setTimeout(r, 1500));
                     }
 
                     // Guardamos el nuevo registro
@@ -433,7 +447,7 @@
                     
                     resetEdicionUI(idArea);
 
-                    // Esperar para dar tiempo a Sheets
+                    // Esperar para dar tiempo a Sheets a estabilizar
                     setTimeout(() => {
                         window.cargarHistorial();
                         document.getElementById('custom-modal').classList.add('hidden');
@@ -449,9 +463,8 @@
 
         window.borrarRegistro = (id) => {
             window.mostrarModal("Borrar Registro", "¿Estás seguro de que quieres eliminar esta programación para todos?", "warning", async () => {
-                
                 if (!GOOGLE_SHEETS_URL) {
-                    window.historialGuardado = window.historialGuardado.filter(item => item.id !== id);
+                    window.historialGuardado = window.historialGuardado.filter(item => String(item.id) !== String(id));
                     localStorage.setItem('programacion_js6_local', JSON.stringify(window.historialGuardado));
                     window.renderizarHistorial();
                     return;
@@ -470,7 +483,6 @@
                         window.cargarHistorial();
                         document.getElementById('custom-modal').classList.add('hidden');
                     }, 2000);
-
                 } catch(error) {
                     console.error("Error", error);
                 }
@@ -690,8 +702,9 @@
                     if (manz !== '') {
                         conteoTareas++;
                         let tareaDesc = hasTipo ? `${app} (${tipo})` : app;
+                        // ADD originalApp: app para poder mapear correctamente las filas al Editar
                         diaObj.tareas.push({ 
-                            aplicativo: tareaDesc, manzanas: manz, total: totalOrAvance, completado: completado, tipo: tipo
+                            aplicativo: tareaDesc, originalApp: app, manzanas: manz, total: totalOrAvance, completado: completado, tipo: tipo
                         });
                         
                         let resumenItem = `<b>${tareaDesc}:</b> ${manz} ${totalOrAvance ? `[${totalOrAvance}]` : ''}`;
@@ -758,7 +771,7 @@
         };
 
         window.verDetalleRegistro = (id) => {
-            const registro = window.historialGuardado.find(r => r.id === id);
+            const registro = window.historialGuardado.find(r => String(r.id) === String(id));
             if(!registro) return;
             
             window.registroVisualizadoId = id; // Guardamos el ID por si decide editar
