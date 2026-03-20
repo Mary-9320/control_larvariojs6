@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -24,6 +23,10 @@
         .editable { transition: all 0.2s; border-radius: 0.25rem; outline: none; cursor: text; }
         .editable:hover { background-color: rgba(244, 121, 32, 0.1); box-shadow: 0 0 0 1px #F47920; }
         .editable:focus { background-color: white; box-shadow: 0 0 0 2px #00AEEF; color: #111827 !important; }
+        
+        /* Estilo visual cuando está bloqueado */
+        .editable[contenteditable="false"] { cursor: not-allowed; background-color: transparent !important; box-shadow: none !important; }
+        
         td.editable { padding-left: 0.5rem; padding-right: 0.5rem; }
         
         .cal-area-lazarocardenas { border-left: 4px solid #00AEEF; background-color: #E5F7FD; }
@@ -37,10 +40,43 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-gray-100 p-2 md:p-8 font-sans">
+<body class="bg-gray-100 font-sans relative pb-10">
+
+    <!-- BARRA DE SEGURIDAD TOP -->
+    <div class="bg-gray-800 text-white py-2 px-4 md:px-8 flex justify-between items-center z-50 relative shadow-md" data-html2canvas-ignore="true">
+        <div class="text-sm md:text-base font-bold tracking-wider flex items-center">
+            <i class="fas fa-shield-alt text-brandBlue-500 mr-2 text-lg"></i> 
+            <span class="hidden sm:inline">SISTEMA DE PROGRAMACIÓN </span>JS6
+        </div>
+        
+        <div id="auth-locked" class="flex items-center transition-all">
+            <span class="text-xs text-gray-400 mr-3 hidden md:inline"><i class="fas fa-lock mr-1"></i> Modo Lectura</span>
+            <button onclick="requerirAcceso(() => { window.mostrarModal('Sistema Desbloqueado', 'Bienvenido, ahora puedes crear y editar programaciones.', 'success') })" class="bg-brandBlue-600 hover:bg-brandBlue-500 px-4 py-1.5 rounded-lg text-xs md:text-sm font-bold shadow transition flex items-center">
+                <i class="fas fa-unlock-alt mr-2"></i> Desbloquear Sistema
+            </button>
+        </div>
+        
+        <div id="auth-unlocked" class="hidden flex items-center transition-all">
+            <span class="text-xs md:text-sm text-green-400 mr-4 font-medium"><i class="fas fa-user-check mr-1"></i> <span id="auth-role-name" class="font-bold text-white"></span></span>
+            <button onclick="bloquearSistema()" class="bg-red-600 hover:bg-red-500 px-4 py-1.5 rounded-lg text-xs md:text-sm font-bold shadow transition flex items-center">
+                <i class="fas fa-lock mr-2"></i> Bloquear
+            </button>
+        </div>
+    </div>
+
+    <!-- BANNER DE MODO EDICIÓN -->
+    <div id="banner-edicion" class="hidden fixed bottom-0 left-0 w-full bg-brandOrange-600 text-white text-center py-3 px-4 z-[100] shadow-[0_-4px_6px_rgba(0,0,0,0.1)] flex flex-col md:flex-row justify-center md:justify-between items-center gap-3 transition-all" data-html2canvas-ignore="true">
+        <div class="text-sm md:text-base">
+            <i class="fas fa-user-edit mr-2"></i> 
+            <strong>MODO EDICIÓN:</strong> Los datos se cargaron en la pestaña correspondiente. Modifica y presiona "Actualizar Registro". 
+        </div>
+        <button onclick="cancelarEdicion()" class="bg-gray-900 hover:bg-black text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-colors shadow flex items-center">
+            <i class="fas fa-times mr-2"></i> Cancelar Edición
+        </button>
+    </div>
 
     <!-- Modal Personalizado (Alerts y Confirmaciones) -->
-    <div id="custom-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center backdrop-blur-sm" data-html2canvas-ignore="true">
+    <div id="custom-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center backdrop-blur-sm p-4" data-html2canvas-ignore="true">
         <div class="bg-white p-6 rounded-xl max-w-sm w-full shadow-2xl transform transition-all">
             <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-2 flex items-center"></h3>
             <p id="modal-msg" class="text-gray-600 mb-6"></p>
@@ -48,15 +84,15 @@
         </div>
     </div>
 
-    <!-- Modal para Validar Clave de Edición (NUEVO) -->
-    <div id="modal-clave" class="hidden fixed inset-0 bg-black/60 z-[70] flex items-center justify-center backdrop-blur-sm p-4" data-html2canvas-ignore="true">
-        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-xs w-full">
+    <!-- Modal para Validar Clave de Edición -->
+    <div id="modal-clave" class="hidden fixed inset-0 bg-black/60 z-[90] flex items-center justify-center backdrop-blur-sm p-4" data-html2canvas-ignore="true">
+        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-xs w-full transform scale-100 transition-all">
             <div class="text-center mb-4">
                 <div class="bg-blue-100 text-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3 text-xl">
-                    <i class="fas fa-lock"></i>
+                    <i class="fas fa-key"></i>
                 </div>
                 <h3 class="text-xl font-bold text-gray-800">Autorización</h3>
-                <p class="text-sm text-gray-500 mt-1">Ingresa tu clave asignada para editar.</p>
+                <p class="text-sm text-gray-500 mt-1">Ingresa tu clave de acceso.</p>
             </div>
             <input type="password" id="input-clave" onkeydown="if(event.key === 'Enter') verificarClave()" class="w-full border-2 border-gray-300 p-3 rounded-lg mb-6 text-center text-2xl tracking-widest focus:border-brandBlue-500 focus:ring-2 focus:ring-brandBlue-100 outline-none transition-all" placeholder="•••">
             <div class="flex justify-end gap-2">
@@ -81,111 +117,113 @@
             <div id="detalle-contenido" class="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Cards inyectadas por JS -->
             </div>
-            <div class="bg-gray-200 p-4 flex justify-between items-center">
-                <!-- BOTÓN DE EDICIÓN AÑADIDO -->
-                <button onclick="iniciarEdicion()" class="px-6 py-2 bg-brandBlue-600 hover:bg-brandBlue-700 text-white font-bold rounded shadow transition-colors flex items-center">
-                    <i class="fas fa-edit mr-2"></i> Editar Información
+            <div class="bg-gray-200 p-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <button onclick="requerirAcceso(() => iniciarEdicionDesdeModal())" class="w-full sm:w-auto px-6 py-2 bg-brandOrange-500 hover:bg-brandOrange-600 text-white font-bold rounded shadow transition-colors flex items-center justify-center">
+                    <i class="fas fa-pencil-alt mr-2"></i> Editar Información
                 </button>
-                <button onclick="document.getElementById('modal-detalle').classList.add('hidden')" class="px-6 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded shadow transition-colors">
-                    Cerrar
+                <button onclick="document.getElementById('modal-detalle').classList.add('hidden')" class="w-full sm:w-auto px-6 py-2 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded shadow transition-colors text-center">
+                    Cerrar Vista Previa
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Instrucciones y Botones Generales -->
-    <div class="max-w-7xl mx-auto mb-4 flex flex-col md:flex-row justify-between items-center gap-4" data-html2canvas-ignore="true">
-        <div class="bg-blue-50 text-brandBlue-600 px-4 py-3 rounded-lg border border-blue-200 flex-1 flex items-center shadow-sm w-full">
-            <i class="fas fa-info-circle text-xl mr-3"></i>
-            <p class="text-sm font-medium"><strong>¡Plantilla Editable!</strong> Edita la información y usa el botón <strong>Guardar Registro</strong> para subirla a la nube.</p>
+    <div class="p-2 md:p-8 pt-4">
+        <!-- Instrucciones y Botones Generales -->
+        <div class="max-w-7xl mx-auto mb-4 flex flex-col md:flex-row justify-between items-center gap-4" data-html2canvas-ignore="true">
+            <div class="bg-blue-50 text-brandBlue-600 px-4 py-3 rounded-lg border border-blue-200 flex-1 flex items-center shadow-sm w-full">
+                <i class="fas fa-info-circle text-xl mr-3"></i>
+                <p class="text-sm font-medium">Desbloquea el sistema arriba para editar. Ve al <strong>Historial</strong> para consultar y modificar folios anteriores.</p>
+            </div>
+            
+            <div class="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
+                <a href="https://calendar.google.com/calendar/u/0/r" target="_blank" class="bg-brandBlue-600 hover:bg-brandBlue-500 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
+                    <i class="fas fa-external-link-alt mr-2"></i> Calendario Gral.
+                </a>
+                <button onclick="exportarCalendario()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
+                    <i class="fas fa-calendar-plus mr-2"></i> Crear .ICS
+                </button>
+                <button onclick="descargarImagen()" class="bg-brandOrange-500 hover:bg-brandOrange-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
+                    <i class="fas fa-image mr-2"></i> Imagen
+                </button>
+            </div>
         </div>
-        
-        <div class="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
-            <a href="https://calendar.google.com/calendar/u/0/r" target="_blank" class="bg-brandBlue-600 hover:bg-brandBlue-500 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
-                <i class="fas fa-external-link-alt mr-2"></i> Calendario Gral.
-            </a>
-            <button onclick="exportarCalendario()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
-                <i class="fas fa-calendar-plus mr-2"></i> Crear .ICS
+
+        <!-- Pestañas -->
+        <div class="max-w-7xl mx-auto mb-4 flex flex-wrap gap-1" data-html2canvas-ignore="true">
+            <button id="tab-btn-lazarocardenas" onclick="cambiarPestana('lazarocardenas')" class="tab-btn px-4 py-2 bg-brandBlue-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">CSU LÁZARO CÁRDENAS</button>
+            <button id="tab-btn-brigada" onclick="cambiarPestana('brigada')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">BRIGADA JS6</button>
+            <button id="tab-btn-salinas" onclick="cambiarPestana('salinas')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">CSU C. SALINAS</button>
+            <button id="tab-btn-foraneas" onclick="cambiarPestana('foraneas')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">FORÁNEAS</button>
+            <button id="tab-btn-entomologia" onclick="cambiarPestana('entomologia')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">ENTOMOLOGÍA</button>
+            <button id="tab-btn-nebulizacion" onclick="cambiarPestana('nebulizacion')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">NEBULIZACIÓN</button>
+            
+            <button id="tab-btn-calendario" onclick="cambiarPestana('calendario')" class="tab-btn px-4 py-2 bg-purple-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto">
+                <i class="fas fa-calendar-week mr-1"></i> CALENDARIO
             </button>
-            <button onclick="descargarImagen()" class="bg-brandOrange-500 hover:bg-brandOrange-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
-                <i class="fas fa-image mr-2"></i> Imagen
+            <button id="tab-btn-historial" onclick="cambiarPestana('historial')" class="tab-btn px-4 py-2 bg-gray-800 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">
+                <i class="fas fa-cloud-download-alt mr-1"></i> HISTORIAL (NUBE)
             </button>
         </div>
-    </div>
 
-    <!-- Pestañas -->
-    <div class="max-w-7xl mx-auto mb-4 flex flex-wrap gap-1" data-html2canvas-ignore="true">
-        <button id="tab-btn-lazarocardenas" onclick="cambiarPestana('lazarocardenas')" class="tab-btn px-4 py-2 bg-brandBlue-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">CSU LÁZARO CÁRDENAS</button>
-        <button id="tab-btn-brigada" onclick="cambiarPestana('brigada')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">BRIGADA JS6</button>
-        <button id="tab-btn-salinas" onclick="cambiarPestana('salinas')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">CSU C. SALINAS</button>
-        <button id="tab-btn-foraneas" onclick="cambiarPestana('foraneas')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">FORÁNEAS</button>
-        <button id="tab-btn-entomologia" onclick="cambiarPestana('entomologia')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">ENTOMOLOGÍA</button>
-        <button id="tab-btn-nebulizacion" onclick="cambiarPestana('nebulizacion')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">NEBULIZACIÓN</button>
-        
-        <button id="tab-btn-calendario" onclick="cambiarPestana('calendario')" class="tab-btn px-4 py-2 bg-purple-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto">
-            <i class="fas fa-calendar-week mr-1"></i> CALENDARIO
-        </button>
-        <button id="tab-btn-historial" onclick="cambiarPestana('historial')" class="tab-btn px-4 py-2 bg-gray-800 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">
-            <i class="fas fa-cloud-download-alt mr-1"></i> HISTORIAL (NUBE)
-        </button>
-    </div>
+        <!-- CONTENEDORES DE ÁREAS GENERADOS POR JS -->
+        <div id="contenedores-areas"></div>
 
-    <div id="contenedores-areas"></div>
-
-    <!-- CONTENEDOR: HISTORIAL -->
-    <div id="contenedor-historial" class="tab-content hidden">
-        <div class="max-w-7xl mx-auto bg-gray-100 p-4 rounded-xl captura-objetivo">
-            <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-gray-800 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-                <div class="w-full">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wide flex items-center">
-                        <i class="fas fa-cloud mr-3 text-blue-500"></i> Base de Datos (Nube)
-                        <button onclick="cargarHistorial()" class="ml-4 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full transition-colors flex items-center">
-                            <i class="fas fa-sync-alt mr-1"></i> Actualizar
-                        </button>
-                    </h1>
-                    <p class="text-gray-500 mt-2 font-medium text-lg">Toda la programación guardada es accesible para todo el equipo.</p>
-                    <div class="mt-4 max-w-md relative" data-html2canvas-ignore="true">
-                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                        <input type="text" id="buscador-historial" oninput="filtrarHistorial()" placeholder="Buscar por Sector o Folio..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brandBlue-500 outline-none shadow-sm">
+        <!-- CONTENEDOR: HISTORIAL -->
+        <div id="contenedor-historial" class="tab-content hidden">
+            <div class="max-w-7xl mx-auto bg-gray-100 p-4 rounded-xl captura-objetivo">
+                <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-gray-800 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                    <div class="w-full">
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wide flex items-center">
+                            <i class="fas fa-cloud mr-3 text-blue-500"></i> Base de Datos (Nube)
+                            <button onclick="cargarHistorial()" class="ml-4 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full transition-colors flex items-center">
+                                <i class="fas fa-sync-alt mr-1"></i> Actualizar
+                            </button>
+                        </h1>
+                        <p class="text-gray-500 mt-2 font-medium text-lg">Toda la programación guardada es accesible para todo el equipo.</p>
+                        <div class="mt-4 max-w-md relative" data-html2canvas-ignore="true">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            <input type="text" id="buscador-historial" oninput="filtrarHistorial()" placeholder="Buscar por Sector o Folio..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brandBlue-500 outline-none shadow-sm">
+                        </div>
+                    </div>
+                </header>
+                
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                    <div class="overflow-x-auto no-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-800 text-white text-sm uppercase">
+                                    <th class="py-3 px-4 font-semibold border-b border-gray-700">Fecha</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-gray-700">Folio</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-gray-700">Área</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-gray-700">Sec/Col</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-gray-700 w-1/3">Resumen</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-gray-700 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-historial" class="text-gray-700 text-sm">
+                                <tr><td colspan="6" class="text-center py-6 text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i> Conectando a la base de datos...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </header>
-            
-            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-                <div class="overflow-x-auto no-scrollbar">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-800 text-white text-sm uppercase">
-                                <th class="py-3 px-4 font-semibold border-b border-gray-700">Fecha</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-700">Folio</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-700">Área</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-700">Sec/Col</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-700">Resumen</th>
-                                <th class="py-3 px-4 font-semibold border-b border-gray-700 text-center">Borrar</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-historial" class="text-gray-700 text-sm">
-                            <tr><td colspan="6" class="text-center py-6 text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i> Conectando a la base de datos...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
         </div>
-    </div>
 
-    <!-- CONTENEDOR: CALENDARIO -->
-    <div id="contenedor-calendario" class="tab-content hidden">
-        <div id="contenido-a-descargar-calendario" class="max-w-7xl mx-auto bg-gray-100 p-4 rounded-xl captura-objetivo">
-            <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-purple-500 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-bold text-purple-700 uppercase tracking-wide"><i class="fas fa-calendar-alt mr-2"></i> Resumen General</h1>
-                    <p class="text-gray-500 mt-2 font-medium text-lg">Visión consolidada de la programación actual</p>
-                </div>
-                <button onclick="limpiarTodasLasAreas()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2 px-4 rounded-lg shadow-sm" data-html2canvas-ignore="true">
-                    <i class="fas fa-dumpster-fire mr-2"></i> Borrar Todo
-                </button>
-            </header>
-            <div id="grid-calendario-general"></div>
+        <!-- CONTENEDOR: CALENDARIO -->
+        <div id="contenedor-calendario" class="tab-content hidden">
+            <div id="contenido-a-descargar-calendario" class="max-w-7xl mx-auto bg-gray-100 p-4 rounded-xl captura-objetivo">
+                <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-purple-500 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-purple-700 uppercase tracking-wide"><i class="fas fa-calendar-alt mr-2"></i> Resumen General</h1>
+                        <p class="text-gray-500 mt-2 font-medium text-lg">Visión consolidada de la programación actual</p>
+                    </div>
+                    <button onclick="requerirAcceso(() => limpiarTodasLasAreas())" class="btn-requiere-auth bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2 px-4 rounded-lg shadow-sm" data-html2canvas-ignore="true">
+                        <i class="fas fa-dumpster-fire mr-2"></i> Borrar Todo
+                    </button>
+                </header>
+                <div id="grid-calendario-general"></div>
+            </div>
         </div>
     </div>
 
@@ -198,8 +236,11 @@
 
         window.historialGuardado = [];
         window.registroEnEdicion = null;
-        window.rolEdicion = '';
         window.registroVisualizadoId = null;
+        
+        // SISTEMA DE AUTENTICACIÓN GLOBAL
+        window.usuarioActual = null;
+        window.accionPendiente = null;
 
         const diasSemana = [
             { nombre: "Lunes", fecha: "02 / 03 / 2026" },
@@ -217,6 +258,72 @@
             { id: 'entomologia', nombre: 'Entomología', apps: 3, claseCSS: 'cal-area-entomologia text-violet-800' },
             { id: 'nebulizacion', nombre: 'Nebulización', apps: 3, claseCSS: 'cal-area-nebulizacion text-cyan-800' }
         ];
+
+        // --- FUNCIONES DE SEGURIDAD (BLOQUEO Y DESBLOQUEO) ---
+        window.bloquearSistema = () => {
+            window.usuarioActual = null;
+            document.querySelectorAll('.editable').forEach(el => el.setAttribute('contenteditable', 'false'));
+            document.querySelectorAll('input[type="checkbox"], select').forEach(el => el.disabled = true);
+            document.querySelectorAll('.btn-requiere-auth').forEach(el => el.classList.add('hidden'));
+            
+            document.getElementById('auth-locked').classList.remove('hidden');
+            document.getElementById('auth-unlocked').classList.add('hidden');
+            
+            if(window.registroEnEdicion) {
+                cancelarEdicion();
+            }
+        };
+
+        window.desbloquearSistema = (rol) => {
+            window.usuarioActual = rol;
+            document.querySelectorAll('.editable').forEach(el => el.setAttribute('contenteditable', 'true'));
+            document.querySelectorAll('input[type="checkbox"], select').forEach(el => el.disabled = false);
+            document.querySelectorAll('.btn-requiere-auth').forEach(el => el.classList.remove('hidden'));
+            
+            document.getElementById('auth-locked').classList.add('hidden');
+            document.getElementById('auth-unlocked').classList.remove('hidden');
+            document.getElementById('auth-role-name').innerText = rol;
+        };
+
+        window.requerirAcceso = (callback) => {
+            if (window.usuarioActual) {
+                callback();
+            } else {
+                window.accionPendiente = callback;
+                document.getElementById('input-clave').value = '';
+                document.getElementById('modal-clave').classList.remove('hidden');
+                setTimeout(() => document.getElementById('input-clave').focus(), 100);
+            }
+        };
+
+        window.verificarClave = () => {
+            const clave = document.getElementById('input-clave').value;
+            let rol = '';
+            
+            if (clave === '08') rol = 'Control Larvario';
+            else if (clave === '06') rol = 'Entomología';
+            else if (clave === '07') rol = 'Administrador';
+            
+            if (rol !== '') {
+                document.getElementById('modal-clave').classList.add('hidden');
+                desbloquearSistema(rol);
+                if (window.accionPendiente) {
+                    window.accionPendiente();
+                    window.accionPendiente = null;
+                } else {
+                    window.mostrarModal("Sistema Desbloqueado", `Has accedido de forma segura como: ${rol}. Ahora tienes permisos completos.`, "success");
+                }
+            } else {
+                document.getElementById('modal-clave').classList.add('hidden');
+                window.mostrarModal("Acceso Denegado", "La clave ingresada es incorrecta.", "error");
+                window.accionPendiente = null;
+            }
+        };
+
+        window.cerrarModalClave = () => {
+            document.getElementById('modal-clave').classList.add('hidden');
+            window.accionPendiente = null;
+        };
 
         // --- SISTEMA DE MODALES ---
         window.mostrarModal = (titulo, mensaje, tipo = 'info', onConfirm = null) => {
@@ -257,48 +364,42 @@
             modal.classList.remove('hidden');
         };
 
-        // --- SISTEMA DE AUTORIZACIÓN (CLAVES) ---
-        window.iniciarEdicion = () => {
-            document.getElementById('input-clave').value = '';
-            document.getElementById('modal-clave').classList.remove('hidden');
-            setTimeout(() => document.getElementById('input-clave').focus(), 100);
+        // --- CARGAR DATOS PARA EDICIÓN ---
+        window.iniciarEdicionDirecta = (id) => {
+            window.registroVisualizadoId = id; 
+            cargarDatosEnFormulario(id);
         };
 
-        window.cerrarModalClave = () => {
-            document.getElementById('modal-clave').classList.add('hidden');
+        window.iniciarEdicionDesdeModal = () => {
+            document.getElementById('modal-detalle').classList.add('hidden');
+            cargarDatosEnFormulario(window.registroVisualizadoId);
         };
 
-        window.verificarClave = () => {
-            const clave = document.getElementById('input-clave').value;
-            let rol = '';
-            
-            // Asignación de claves a roles
-            if (clave === '08') rol = 'Control Larvario';
-            else if (clave === '06') rol = 'Entomología';
-            else if (clave === '07') rol = 'Administrador';
-            
-            cerrarModalClave();
-            
-            if (rol !== '') {
-                document.getElementById('modal-detalle').classList.add('hidden');
-                cargarDatosEnFormulario(window.registroVisualizadoId, rol);
-            } else {
-                window.mostrarModal("Acceso Denegado", "La clave ingresada es incorrecta. No tienes permisos para editar.", "error");
-            }
-        };
-
-        // --- CARGAR DATOS PARA EDICIÓN EN LA PESTAÑA CORRESPONDIENTE ---
-        window.cargarDatosEnFormulario = (id, rol) => {
+        window.cargarDatosEnFormulario = (id) => {
             const registro = window.historialGuardado.find(r => String(r.id) === String(id));
             if(!registro) return;
             
             window.registroEnEdicion = registro;
-            window.rolEdicion = rol;
-            
-            const idArea = registro.areaId;
+
+            // Compatibilidad con registros antiguos (sin areaId)
+            let idArea = registro.areaId;
+            if (!idArea && registro.area) {
+                const matchedArea = areasInfo.find(a => a.nombre === registro.area);
+                if (matchedArea) idArea = matchedArea.id;
+            }
+            if (!idArea) {
+                window.mostrarModal("Error", "No se puede editar este registro porque es un formato antiguo y no tiene un área identificada.", "error");
+                return;
+            }
+
             cambiarPestana(idArea);
             
             const contenedor = document.getElementById('contenido-a-descargar-' + idArea);
+            if(!contenedor) return;
+
+            // Limpieza profunda asegurando estructura HTML intacta
+            limpiarDatosInterno(contenedor);
+
             contenedor.querySelector('.sector-texto').innerText = registro.sector || '';
             contenedor.querySelector('.colonia-texto').innerText = registro.colonia || '';
             contenedor.querySelector('.folio-texto').innerText = registro.folio || '';
@@ -307,45 +408,42 @@
             const isNeb = idArea === 'nebulizacion';
             const hasTipo = isEntomo || isNeb;
 
-            // Limpiar inputs previamente para que no se empalme información vieja
-            contenedor.querySelectorAll('.manzanas-input, .totales-input, .avance-input').forEach(el => el.innerText = '');
-            contenedor.querySelectorAll('.verificado-checkbox').forEach(el => el.checked = false);
-            contenedor.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+            // Rellenar las tablas
+            if (registro.diasData) {
+                const diasCards = contenedor.querySelectorAll('.dia-card');
+                registro.diasData.forEach((diaData, index) => {
+                    if(index < diasCards.length) {
+                        const filas = diasCards[index].querySelectorAll('tbody tr');
+                        diaData.tareas.forEach((tarea) => {
+                            let matchedRow = Array.from(filas).find(fila => {
+                                const cellApp = fila.querySelectorAll('td')[0].innerText.trim();
+                                const targetName = tarea.originalApp || (hasTipo ? tarea.aplicativo.split(' (')[0] : tarea.aplicativo);
+                                return cellApp === targetName;
+                            });
 
-            // Rellenar las tablas de días encontrando el renglón correcto
-            const diasCards = contenedor.querySelectorAll('.dia-card');
-            registro.diasData.forEach((diaData, index) => {
-                if(index < diasCards.length) {
-                    const filas = diasCards[index].querySelectorAll('tbody tr');
-                    diaData.tareas.forEach((tarea) => {
-                        let matchedRow = Array.from(filas).find(fila => {
-                            const cellApp = fila.querySelectorAll('td')[0].innerText.trim();
-                            // Usar originalApp si existe, sino el aplicativo sin los paréntesis del tipo
-                            const targetName = tarea.originalApp || (hasTipo ? tarea.aplicativo.split(' (')[0] : tarea.aplicativo);
-                            return cellApp === targetName;
-                        });
+                            if(matchedRow) {
+                                const tds = matchedRow.querySelectorAll('td');
+                                tds[0].innerText = tarea.originalApp || (hasTipo ? tarea.aplicativo.split(' (')[0] : tarea.aplicativo);
 
-                        if(matchedRow) {
-                            const tds = matchedRow.querySelectorAll('td');
-                            if (hasTipo) {
-                                const selectEl = tds[1].querySelector('select');
-                                if(selectEl && tarea.tipo) selectEl.value = tarea.tipo;
-                                tds[2].innerText = tarea.manzanas || '';
-                                tds[3].innerText = tarea.total || '';
-                                const checkbox = tds[4].querySelector('input[type="checkbox"]');
-                                if(checkbox) checkbox.checked = tarea.completado || false;
-                            } else {
-                                tds[1].innerText = tarea.manzanas || '';
-                                tds[2].innerText = tarea.total || '';
-                                const checkbox = tds[3].querySelector('input[type="checkbox"]');
-                                if(checkbox) checkbox.checked = tarea.completado || false;
+                                if (hasTipo) {
+                                    const selectEl = tds[1].querySelector('select');
+                                    if(selectEl && tarea.tipo) selectEl.value = tarea.tipo;
+                                    tds[2].innerText = tarea.manzanas || '';
+                                    tds[3].innerText = tarea.total || '';
+                                    const checkbox = tds[4].querySelector('input[type="checkbox"]');
+                                    if(checkbox) checkbox.checked = tarea.completado || false;
+                                } else {
+                                    tds[1].innerText = tarea.manzanas || '';
+                                    tds[2].innerText = tarea.total || '';
+                                    const checkbox = tds[3].querySelector('input[type="checkbox"]');
+                                    if(checkbox) checkbox.checked = tarea.completado || false;
+                                }
                             }
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
+            }
             
-            // Transformar el botón de guardar a modo edición
             const btnGuardar = contenedor.querySelector('.btn-guardar-registro');
             if(btnGuardar) {
                 btnGuardar.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Actualizar Registro';
@@ -353,13 +451,20 @@
                 btnGuardar.classList.add('bg-brandOrange-600', 'hover:bg-brandOrange-700');
             }
             
-            window.mostrarModal("Modo Edición Activado", `Has accedido como: ${rol}. Realiza las modificaciones y haz clic en "Actualizar Registro" para sobrescribir la programación en la nube.`, "info");
+            document.getElementById('banner-edicion').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // Regresar el botón a estado normal
+        window.cancelarEdicion = () => {
+            if(window.registroEnEdicion) {
+                limpiarDatosInterno(document.getElementById('contenido-a-descargar-' + window.registroEnEdicion.areaId));
+                resetEdicionUI(window.registroEnEdicion.areaId);
+            }
+        };
+
         function resetEdicionUI(idArea) {
             window.registroEnEdicion = null;
-            window.rolEdicion = '';
+            document.getElementById('banner-edicion').classList.add('hidden');
             const contenedor = document.getElementById('contenido-a-descargar-' + idArea);
             if(!contenedor) return;
             const btnGuardar = contenedor.querySelector('.btn-guardar-registro');
@@ -370,7 +475,7 @@
             }
         }
 
-        // --- CONEXIÓN A GOOGLE SHEETS (Backend Real) ---
+        // --- CONEXIÓN A GOOGLE SHEETS ---
         window.cargarHistorial = async () => {
             const tbody = document.getElementById('tabla-historial');
             if (!GOOGLE_SHEETS_URL) {
@@ -388,7 +493,7 @@
                 window.historialGuardado = data;
                 window.renderizarHistorial();
             } catch (error) {
-                console.error("Error al cargar historial desde Sheets", error);
+                console.error("Error al cargar historial", error);
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-500"><i class="fas fa-wifi mr-2"></i> Error de conexión. Revisa que configuraste bien el enlace.</td></tr>`;
             }
         };
@@ -397,26 +502,31 @@
             const isEdicion = window.registroEnEdicion && window.registroEnEdicion.areaId === idArea;
             const tituloModal = isEdicion ? "Actualizar Programación" : "Subir a la Nube";
             const mensajeModal = isEdicion 
-                ? `¿Deseas actualizar este registro existente? Quedará marcado que fue editado por ${window.rolEdicion}.` 
+                ? `¿Deseas actualizar este registro existente? Quedará marcado que fue editado por <b>${window.usuarioActual}</b>.` 
                 : "¿Deseas guardar permanentemente esta programación? Todos podrán verla.";
 
             window.mostrarModal(tituloModal, mensajeModal, "info", async () => {
                 const datos = extraerDatosArea(idArea);
-                datos.fechaGuardado = new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+                
+                // Obtener fecha y hora súper precisas para el sello de modificación
+                const fechaHoraActual = new Date().toLocaleString('es-MX', { 
+                    year: 'numeric', month: '2-digit', day: '2-digit', 
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true 
+                });
+                
+                datos.fechaGuardado = fechaHoraActual;
                 
                 if (isEdicion) {
                     datos.id = window.registroEnEdicion.id;
-                    // Agregar trazabilidad en el resumen
-                    datos.resumenTareas += `<div class="mt-2 text-brandBlue-600 font-semibold italic border-t pt-1"><i class="fas fa-user-edit mr-1"></i> Editado por: ${window.rolEdicion}</div>`;
-                    datos.resumenPlano += ` [Modificado por: ${window.rolEdicion}]`;
+                    datos.resumenTareas += `<div class="mt-3 text-xs bg-blue-100 text-blue-800 p-2 rounded border border-blue-200 shadow-sm"><i class="fas fa-user-shield mr-1"></i> <b>Última edición por:</b> ${window.usuarioActual} el ${fechaHoraActual}</div>`;
+                    datos.resumenPlano += ` [Editado por: ${window.usuarioActual} el ${fechaHoraActual}]`;
                 } else {
                     datos.id = "REG_" + new Date().getTime();
+                    datos.resumenTareas += `<div class="mt-3 text-xs text-gray-400 font-medium italic">Creado por: ${window.usuarioActual} el ${fechaHoraActual}</div>`;
                 }
 
                 if (!GOOGLE_SHEETS_URL) {
-                    if (isEdicion) {
-                        window.historialGuardado = window.historialGuardado.filter(r => r.id !== datos.id);
-                    }
+                    if (isEdicion) window.historialGuardado = window.historialGuardado.filter(r => r.id !== datos.id);
                     window.historialGuardado.unshift(datos);
                     localStorage.setItem('programacion_js6_local', JSON.stringify(window.historialGuardado));
                     window.renderizarHistorial();
@@ -427,7 +537,6 @@
 
                 window.mostrarModal(isEdicion ? "Actualizando..." : "Guardando...", "Enviando datos a la base de datos...", "loading");
                 try {
-                    // Si es edición, primero borramos el viejo en la base de datos (con un pequeño delay para evitar que Google Sheets falle)
                     if (isEdicion) {
                         await fetch(GOOGLE_SHEETS_URL, {
                             method: 'POST',
@@ -435,10 +544,10 @@
                             headers: { 'Content-Type': 'text/plain' },
                             body: JSON.stringify({ action: 'delete', id: datos.id })
                         });
-                        await new Promise(r => setTimeout(r, 1500));
+                        // Pausa obligatoria para evitar congelamiento de Google Sheets
+                        await new Promise(resolve => setTimeout(resolve, 1500));
                     }
 
-                    // Guardamos el nuevo registro
                     await fetch(GOOGLE_SHEETS_URL, {
                         method: 'POST',
                         mode: 'no-cors',
@@ -448,7 +557,6 @@
                     
                     resetEdicionUI(idArea);
 
-                    // Esperar para dar tiempo a Sheets a estabilizar
                     setTimeout(() => {
                         window.cargarHistorial();
                         document.getElementById('custom-modal').classList.add('hidden');
@@ -462,7 +570,7 @@
             });
         };
 
-        window.borrarRegistro = (id) => {
+        window.borrarRegistroSeguro = (id) => {
             window.mostrarModal("Borrar Registro", "¿Estás seguro de que quieres eliminar esta programación para todos?", "warning", async () => {
                 if (!GOOGLE_SHEETS_URL) {
                     window.historialGuardado = window.historialGuardado.filter(item => String(item.id) !== String(id));
@@ -479,7 +587,6 @@
                         headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify({ action: 'delete', id: id })
                     });
-                    
                     setTimeout(() => {
                         window.cargarHistorial();
                         document.getElementById('custom-modal').classList.add('hidden');
@@ -506,25 +613,25 @@
                                 <p class="text-gray-500 mt-2 font-medium text-lg flex flex-wrap items-center gap-y-2">
                                     <span class="flex items-center mr-4">
                                         <i class="fas fa-map-marker-alt text-brandOrange-500 mr-2"></i>
-                                        Sector <span contenteditable="true" class="sector-texto editable ml-1 font-bold px-1 text-gray-800">179</span>
+                                        Sector <span class="sector-texto editable ml-1 font-bold px-1 text-gray-800">179</span>
                                     </span>
                                     <span class="hidden sm:inline-block text-gray-300 mr-4">|</span>
                                     <span class="flex items-center">
                                         <i class="fas fa-city text-brandBlue-600 mr-2"></i>
-                                        Colonia <span contenteditable="true" class="colonia-texto editable ml-1 font-bold px-1 text-brandBlue-600">Escribe Colonia</span>
+                                        Colonia <span class="colonia-texto editable ml-1 font-bold px-1 text-brandBlue-600">Escribe Colonia</span>
                                     </span>
                                     <span class="hidden sm:inline-block text-gray-300 mx-2">|</span>
                                     <span class="flex items-center" title="Llenar posterior a la realización">
                                         <i class="fas fa-file-invoice text-purple-500 mr-2"></i>
-                                        Folio <span contenteditable="true" class="folio-texto editable ml-1 font-bold px-1 text-purple-700">S/N</span>
+                                        Folio <span class="folio-texto editable ml-1 font-bold px-1 text-purple-700">S/N</span>
                                     </span>
                                 </p>
                             </div>
                             <div class="flex flex-wrap gap-2" data-html2canvas-ignore="true">
-                                <button onclick="procesarGuardado('${area.id}')" class="btn-guardar-registro bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-4 rounded-lg shadow-sm text-sm transition-colors flex items-center">
+                                <button onclick="requerirAcceso(() => procesarGuardado('${area.id}'))" class="btn-requiere-auth btn-guardar-registro bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-4 rounded-lg shadow-sm text-sm transition-colors flex items-center">
                                     <i class="fas fa-cloud-upload-alt mr-2"></i> Guardar Registro
                                 </button>
-                                <button onclick="limpiarDatos('${area.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2 px-3 rounded-lg shadow-sm text-sm transition-colors">
+                                <button onclick="requerirAcceso(() => window.mostrarModal('Borrar Datos', '¿Seguro que deseas limpiar la información?', 'warning', () => { limpiarDatosInterno(document.getElementById('contenido-a-descargar-${area.id}')); resetEdicionUI('${area.id}'); }))" class="btn-requiere-auth bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2 px-3 rounded-lg shadow-sm text-sm transition-colors">
                                     <i class="fas fa-eraser"></i>
                                 </button>
                             </div>
@@ -550,15 +657,15 @@
                     if (isEntomo) {
                         rows += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="py-2 px-2 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo ${i}</td>
+                            <td class="py-2 px-2 font-medium text-brandBlue-600 editable">Aplicativo ${i}</td>
                             <td class="py-2 px-2">
                                 <select class="tipo-entomologia bg-transparent border-b border-gray-300 outline-none text-xs w-full text-violet-600 font-semibold cursor-pointer">
                                     <option value="Encuesta">Encuesta</option>
                                     <option value="Verificación">Verificación</option>
                                 </select>
                             </td>
-                            <td class="py-2 px-2 editable manzanas-input" contenteditable="true"></td>
-                            <td class="py-2 px-2 text-center font-bold text-violet-500 editable avance-input" contenteditable="true"></td>
+                            <td class="py-2 px-2 editable manzanas-input"></td>
+                            <td class="py-2 px-2 text-center font-bold text-violet-500 editable avance-input"></td>
                             <td class="py-2 px-1 text-center" data-html2canvas-ignore="false">
                                 <input type="checkbox" title="Marcar al completar" class="w-4 h-4 cursor-pointer text-violet-600 border-gray-300 rounded focus:ring-violet-500 verificado-checkbox">
                             </td>
@@ -566,15 +673,15 @@
                     } else if (isNebulizacion) {
                         rows += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="py-2 px-2 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo ${i}</td>
+                            <td class="py-2 px-2 font-medium text-brandBlue-600 editable">Aplicativo ${i}</td>
                             <td class="py-2 px-2">
                                 <select class="tipo-nebulizacion bg-transparent border-b border-gray-300 outline-none text-xs w-full text-cyan-600 font-semibold cursor-pointer">
                                     <option value="Nebulización">Nebulización</option>
                                     <option value="Termonebulización">Termonebulización</option>
                                 </select>
                             </td>
-                            <td class="py-2 px-2 editable manzanas-input" contenteditable="true"></td>
-                            <td class="py-2 px-2 text-center font-bold text-cyan-500 editable totales-input" contenteditable="true"></td>
+                            <td class="py-2 px-2 editable manzanas-input"></td>
+                            <td class="py-2 px-2 text-center font-bold text-cyan-500 editable totales-input"></td>
                             <td class="py-2 px-1 text-center" data-html2canvas-ignore="false">
                                 <input type="checkbox" title="Marcar al completar" class="w-4 h-4 cursor-pointer text-cyan-600 border-gray-300 rounded focus:ring-cyan-500 verificado-checkbox">
                             </td>
@@ -582,9 +689,9 @@
                     } else {
                         rows += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="py-2 px-4 font-medium text-brandBlue-600 editable" contenteditable="true">Aplicativo ${i}</td>
-                            <td class="py-2 px-4 editable manzanas-input" contenteditable="true"></td>
-                            <td class="py-2 px-4 text-center font-bold text-brandOrange-500 editable totales-input" contenteditable="true"></td>
+                            <td class="py-2 px-4 font-medium text-brandBlue-600 editable">Aplicativo ${i}</td>
+                            <td class="py-2 px-4 editable manzanas-input"></td>
+                            <td class="py-2 px-4 text-center font-bold text-brandOrange-500 editable totales-input"></td>
                             <td class="py-2 px-2 text-center" data-html2canvas-ignore="false">
                                 <input type="checkbox" title="Marcar al completar manzanas" class="w-5 h-5 cursor-pointer text-brandBlue-600 border-gray-300 rounded focus:ring-brandBlue-500 verificado-checkbox">
                             </td>
@@ -636,7 +743,7 @@
                     <div class="${headerColor} text-white px-4 py-3 flex items-center justify-between">
                         <h2 class="text-lg font-bold flex items-center w-full">
                             <i class="far fa-calendar-alt mr-2 ${iconColor}"></i>
-                            <span contenteditable="true" class="fecha-editable editable px-1 w-full">${dia.nombre}, ${dia.fecha}</span>
+                            <span class="fecha-editable editable px-1 w-full">${dia.nombre}, ${dia.fecha}</span>
                         </h2>
                     </div>
                     <div class="overflow-x-auto">
@@ -652,7 +759,8 @@
 
         window.onload = () => {
             inicializarContenedores();
-            window.cargarHistorial(); // Cargar la BD automáticamente al iniciar
+            bloquearSistema(); 
+            window.cargarHistorial(); 
             
             document.addEventListener('paste', function(e) {
                 if(e.target.isContentEditable) {
@@ -703,7 +811,6 @@
                     if (manz !== '') {
                         conteoTareas++;
                         let tareaDesc = hasTipo ? `${app} (${tipo})` : app;
-                        // ADD originalApp: app para poder mapear correctamente las filas al Editar
                         diaObj.tareas.push({ 
                             aplicativo: tareaDesc, originalApp: app, manzanas: manz, total: totalOrAvance, completado: completado, tipo: tipo
                         });
@@ -751,7 +858,7 @@
             let html = '';
             datos.forEach((reg) => {
                 html += `
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td class="py-3 px-4 text-xs font-medium text-gray-600"><i class="far fa-clock mr-1"></i>${reg.fechaGuardado}</td>
                     <td class="py-3 px-4 text-sm font-bold">
                         <button onclick="verDetalleRegistro('${reg.id}')" class="text-purple-600 hover:text-purple-800 flex items-center gap-1 bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-full transition-colors">
@@ -761,8 +868,11 @@
                     <td class="py-3 px-4 text-sm font-bold text-brandBlue-600">${reg.area}</td>
                     <td class="py-3 px-4 text-sm text-gray-700">Sec: ${reg.sector} | Col: ${reg.colonia}</td>
                     <td class="py-3 px-4 text-sm text-gray-700">${reg.resumenTareas}</td>
-                    <td class="py-3 px-4 text-center">
-                        <button onclick="borrarRegistro('${reg.id}')" class="text-red-500 hover:text-red-700 p-2 bg-red-50 hover:bg-red-100 rounded-full transition-colors">
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <button onclick="requerirAcceso(() => iniciarEdicionDirecta('${reg.id}'))" class="text-brandOrange-500 hover:text-brandOrange-700 p-2 bg-orange-50 hover:bg-orange-100 rounded-full transition-colors mr-1" title="Editar Programación">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                        <button onclick="requerirAcceso(() => borrarRegistroSeguro('${reg.id}'))" class="text-red-500 hover:text-red-700 p-2 bg-red-50 hover:bg-red-100 rounded-full transition-colors" title="Eliminar">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
@@ -775,7 +885,7 @@
             const registro = window.historialGuardado.find(r => String(r.id) === String(id));
             if(!registro) return;
             
-            window.registroVisualizadoId = id; // Guardamos el ID por si decide editar
+            window.registroVisualizadoId = id;
             
             const isEntomo = registro.area === 'Entomología';
             const isNebulizacion = registro.area === 'Nebulización';
@@ -789,7 +899,6 @@
             if(registro.diasData && registro.diasData.length > 0) {
                 registro.diasData.forEach((dia, index) => {
                     const isPar = index % 2 === 0;
-                    
                     let headerColor, thColor;
                     if (isEntomo) { headerColor = isPar ? 'bg-violet-500' : 'bg-violet-400'; thColor = isPar ? 'bg-violet-100 text-violet-700' : 'bg-violet-50 text-violet-600'; } 
                     else if (isNebulizacion) { headerColor = isPar ? 'bg-cyan-600' : 'bg-cyan-500'; thColor = isPar ? 'bg-cyan-100 text-cyan-800' : 'bg-cyan-50 text-cyan-700'; } 
@@ -841,39 +950,24 @@
             window.renderizarHistorial(filtrados);
         };
 
-        window.limpiarDatos = (idArea) => {
-            window.mostrarModal("Borrar Datos", "¿Estás seguro de que quieres borrar las manzanas y totales de esta pestaña?", "warning", () => {
-                const contenedor = document.getElementById('contenido-a-descargar-' + idArea);
-                contenedor.querySelector('.sector-texto').innerText = '179';
-                contenedor.querySelector('.colonia-texto').innerText = 'Escribe Colonia';
-                contenedor.querySelector('.folio-texto').innerText = 'S/N';
-                contenedor.querySelectorAll('.manzanas-input').forEach(c => c.innerText = '');
-                contenedor.querySelectorAll('.totales-input').forEach(c => c.innerText = '');
-                contenedor.querySelectorAll('.avance-input').forEach(c => c.innerText = '');
-                contenedor.querySelectorAll('.verificado-checkbox').forEach(chk => chk.checked = false);
-                resetEdicionUI(idArea);
-            });
-        };
-
-        window.limpiarTodasLasAreas = () => {
-            window.mostrarModal("Borrar Todo", "⚠️ ATENCIÓN: ¿Seguro que quieres borrar la información en progreso de TODAS las áreas?", "error", () => {
-                areasInfo.forEach(area => {
-                    const contenedor = document.getElementById('contenido-a-descargar-' + area.id);
-                    if(contenedor) {
-                        contenedor.querySelector('.sector-texto').innerText = '179';
-                        contenedor.querySelector('.colonia-texto').innerText = 'Escribe Colonia';
-                        contenedor.querySelector('.folio-texto').innerText = 'S/N';
-                        contenedor.querySelectorAll('.manzanas-input').forEach(c => c.innerText = '');
-                        contenedor.querySelectorAll('.totales-input').forEach(c => c.innerText = '');
-                        contenedor.querySelectorAll('.avance-input').forEach(c => c.innerText = '');
-                        contenedor.querySelectorAll('.verificado-checkbox').forEach(chk => chk.checked = false);
-                        resetEdicionUI(area.id);
-                    }
+        function limpiarDatosInterno(contenedor) {
+            if(!contenedor) return;
+            contenedor.querySelector('.sector-texto').innerText = '179';
+            contenedor.querySelector('.colonia-texto').innerText = 'Escribe Colonia';
+            contenedor.querySelector('.folio-texto').innerText = 'S/N';
+            contenedor.querySelectorAll('.manzanas-input').forEach(c => c.innerText = '');
+            contenedor.querySelectorAll('.totales-input').forEach(c => c.innerText = '');
+            contenedor.querySelectorAll('.avance-input').forEach(c => c.innerText = '');
+            contenedor.querySelectorAll('.verificado-checkbox').forEach(chk => chk.checked = false);
+            
+            contenedor.querySelectorAll('.dia-card').forEach(card => {
+                card.querySelectorAll('tbody tr').forEach((fila, i) => {
+                    fila.querySelectorAll('td')[0].innerText = `Aplicativo ${i+1}`;
                 });
-                actualizarVistaCalendario();
             });
-        };
+        }
 
+        // --- VISTA CALENDARIO GENERAL ---
         function actualizarVistaCalendario() {
             const gridCal = document.getElementById('grid-calendario-general');
             let html = '<div class="grid grid-cols-1 lg:grid-cols-5 gap-4">';
@@ -936,18 +1030,24 @@
         }
 
         window.cambiarPestana = (idArea) => {
+            if (!idArea) return;
+            
             document.querySelectorAll('.tab-content').forEach(el => { el.classList.add('hidden'); el.classList.remove('block'); });
             document.querySelectorAll('.tab-btn').forEach(btn => { btn.className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm"; });
 
+            const btnCal = document.getElementById('tab-btn-calendario');
+            const btnHistorial = document.getElementById('tab-btn-historial');
+            const btnArea = document.getElementById('tab-btn-' + idArea);
+
             if(idArea === 'calendario') {
                 actualizarVistaCalendario();
-                document.getElementById('tab-btn-calendario').className = "tab-btn px-4 py-2 bg-purple-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto";
+                if(btnCal) btnCal.className = "tab-btn px-4 py-2 bg-purple-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto";
             } else if (idArea === 'historial') {
-                document.getElementById('tab-btn-historial').className = "tab-btn px-4 py-2 bg-gray-800 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
-                document.getElementById('tab-btn-calendario').className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto";
+                if(btnHistorial) btnHistorial.className = "tab-btn px-4 py-2 bg-gray-800 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
+                if(btnCal) btnCal.className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto";
             } else {
-                document.getElementById('tab-btn-' + idArea).className = "tab-btn px-4 py-2 bg-brandBlue-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
-                document.getElementById('tab-btn-calendario').className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto";
+                if(btnArea) btnArea.className = "tab-btn px-4 py-2 bg-brandBlue-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
+                if(btnCal) btnCal.className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto";
             }
 
             const contenedor = document.getElementById('contenedor-' + idArea);
@@ -1055,3 +1155,4 @@
     </script>
 </body>
 </html>
+
