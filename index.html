@@ -297,7 +297,7 @@
             if (!fechaStr) return "Sin fecha";
             try {
                 const partes = fechaStr.split('-');
-                if(partes.length !== 3) return fechaStr; // Fallback si no es YYYY-MM-DD
+                if(partes.length !== 3) return fechaStr; 
                 const fecha = new Date(partes[0], partes[1] - 1, partes[2]);
                 fecha.setDate(fecha.getDate() + dias);
                 return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -542,6 +542,7 @@
                 const localData = localStorage.getItem('programacion_js6_local');
                 window.historialGuardado = localData ? JSON.parse(localData) : [];
                 window.renderizarHistorial();
+                if(getPestanaActiva() === 'resumen') actualizarVistaResumen();
                 return;
             }
 
@@ -549,11 +550,21 @@
             
             try {
                 const response = await fetch(GOOGLE_SHEETS_URL);
-                const data = await response.json();
+                let data = await response.json();
+                
+                // NORMALIZAR FECHAS (Envoltorio para compatibilidad con backend sin modificar)
+                data = data.map(reg => {
+                    if (reg.diasData && !Array.isArray(reg.diasData) && reg.diasData.v === 2) {
+                        reg.fechaInicio = reg.diasData.fechas.inicio;
+                        reg.fechaTermino = reg.diasData.fechas.termino;
+                        reg.diasData = reg.diasData.dias;
+                    }
+                    return reg;
+                });
+
                 window.historialGuardado = data;
                 window.renderizarHistorial();
                 
-                // Actualizar la pestaña de resumen operativo si estamos viéndola
                 if(getPestanaActiva() === 'resumen') actualizarVistaResumen();
                 
             } catch (error) {
@@ -588,6 +599,16 @@
                     datos.resumenTareas += `<div class="mt-3 text-xs text-gray-400 font-medium italic">Creado por: ${window.usuarioActual} el ${fechaHoraActual}</div>`;
                 }
 
+                // ENVOLTORIO PARA ENVIAR FECHAS POR SHEETS SIN ALTERAR EL BACKEND
+                const payloadToCloud = {
+                    ...datos,
+                    diasData: {
+                        v: 2,
+                        fechas: { inicio: datos.fechaInicio, termino: datos.fechaTermino },
+                        dias: datos.diasData
+                    }
+                };
+
                 if (!GOOGLE_SHEETS_URL) {
                     if (isEdicion) window.historialGuardado = window.historialGuardado.filter(r => r.id !== datos.id);
                     window.historialGuardado.unshift(datos);
@@ -614,7 +635,7 @@
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify(datos)
+                        body: JSON.stringify(payloadToCloud) 
                     });
                     
                     resetEdicionUI(idArea);
@@ -633,7 +654,6 @@
         };
 
         window.borrarRegistroSeguro = (id) => {
-            // VERIFICACIÓN DE ADMINISTRADOR
             if (window.usuarioActual !== 'Administrador') {
                 window.mostrarModal("Acceso Denegado", "Solo el Administrador (Clave 07) tiene permisos para eliminar operativos guardados en el historial.", "error");
                 return;
@@ -1088,7 +1108,7 @@
             const tbody = document.getElementById('tabla-resumen');
             let html = '';
             
-            const registrosCL = window.historialGuardado.filter(r => r.areaId !== 'entomologia' && r.areaId !== 'nebulizacion');
+            const registrosCL = window.historialGuardado.filter(r => r.areaId && r.areaId !== 'entomologia' && r.areaId !== 'nebulizacion');
             
             if (registrosCL.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-500 italic">No hay operativos de Control Larvario registrados en el historial.</td></tr>';
@@ -1257,4 +1277,3 @@
     </script>
 </body>
 </html>
-
