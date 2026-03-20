@@ -26,6 +26,7 @@
         
         /* Estilo visual cuando está bloqueado */
         .editable[contenteditable="false"] { cursor: not-allowed; background-color: transparent !important; box-shadow: none !important; }
+        input[type="date"]:disabled { cursor: not-allowed; opacity: 0.6; }
         
         td.editable { padding-left: 0.5rem; padding-right: 0.5rem; }
         
@@ -133,41 +134,73 @@
         <div class="max-w-7xl mx-auto mb-4 flex flex-col md:flex-row justify-between items-center gap-4" data-html2canvas-ignore="true">
             <div class="bg-blue-50 text-brandBlue-600 px-4 py-3 rounded-lg border border-blue-200 flex-1 flex items-center shadow-sm w-full">
                 <i class="fas fa-info-circle text-xl mr-3"></i>
-                <p class="text-sm font-medium">Desbloquea el sistema arriba para editar. Ve al <strong>Historial</strong> para consultar y modificar folios anteriores.</p>
+                <p class="text-sm font-medium">Desbloquea el sistema arriba para editar. Ve al <strong>Historial</strong> o <strong>Plan. Entomo</strong> para consultar los operativos.</p>
             </div>
             
             <div class="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
-                <a href="https://calendar.google.com/calendar/u/0/r" target="_blank" class="bg-brandBlue-600 hover:bg-brandBlue-500 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
-                    <i class="fas fa-external-link-alt mr-2"></i> Calendario Gral.
-                </a>
-                <button onclick="exportarCalendario()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
-                    <i class="fas fa-calendar-plus mr-2"></i> Crear .ICS
-                </button>
                 <button onclick="descargarImagen()" class="bg-brandOrange-500 hover:bg-brandOrange-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center transition-colors text-sm">
-                    <i class="fas fa-image mr-2"></i> Imagen
+                    <i class="fas fa-image mr-2"></i> Descargar Imagen
                 </button>
             </div>
         </div>
 
         <!-- Pestañas -->
         <div class="max-w-7xl mx-auto mb-4 flex flex-wrap gap-1" data-html2canvas-ignore="true">
-            <button id="tab-btn-lazarocardenas" onclick="cambiarPestana('lazarocardenas')" class="tab-btn px-4 py-2 bg-brandBlue-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">CSU LÁZARO CÁRDENAS</button>
-            <button id="tab-btn-brigada" onclick="cambiarPestana('brigada')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">BRIGADA JS6</button>
-            <button id="tab-btn-salinas" onclick="cambiarPestana('salinas')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">CSU C. SALINAS</button>
-            <button id="tab-btn-foraneas" onclick="cambiarPestana('foraneas')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">FORÁNEAS</button>
-            <button id="tab-btn-entomologia" onclick="cambiarPestana('entomologia')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">ENTOMOLOGÍA</button>
-            <button id="tab-btn-nebulizacion" onclick="cambiarPestana('nebulizacion')" class="tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">NEBULIZACIÓN</button>
+            <button id="tab-btn-lazarocardenas" onclick="cambiarPestana('lazarocardenas')" class="tab-btn px-3 py-2 bg-brandBlue-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">C. LARVARIO 1</button>
+            <button id="tab-btn-brigada" onclick="cambiarPestana('brigada')" class="tab-btn px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">BRIGADA JS6</button>
+            <button id="tab-btn-salinas" onclick="cambiarPestana('salinas')" class="tab-btn px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">CSU C. SALINAS</button>
+            <button id="tab-btn-foraneas" onclick="cambiarPestana('foraneas')" class="tab-btn px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">FORÁNEAS</button>
+            <button id="tab-btn-entomologia" onclick="cambiarPestana('entomologia')" class="tab-btn px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">ENTOMOLOGÍA</button>
+            <button id="tab-btn-nebulizacion" onclick="cambiarPestana('nebulizacion')" class="tab-btn px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">NEBULIZACIÓN</button>
             
-            <button id="tab-btn-calendario" onclick="cambiarPestana('calendario')" class="tab-btn px-4 py-2 bg-purple-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto">
-                <i class="fas fa-calendar-week mr-1"></i> CALENDARIO
-            </button>
-            <button id="tab-btn-historial" onclick="cambiarPestana('historial')" class="tab-btn px-4 py-2 bg-gray-800 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">
-                <i class="fas fa-cloud-download-alt mr-1"></i> HISTORIAL (NUBE)
-            </button>
+            <!-- PESTAÑAS ESPECIALES -->
+            <div class="flex ml-auto gap-1">
+                <button id="tab-btn-resumen" onclick="cambiarPestana('resumen')" class="tab-btn px-3 py-2 bg-indigo-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">
+                    <i class="fas fa-tasks mr-1"></i> PLAN. ENTOMO
+                </button>
+                <button id="tab-btn-calendario" onclick="cambiarPestana('calendario')" class="tab-btn px-3 py-2 bg-purple-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">
+                    <i class="fas fa-calendar-week mr-1"></i> CALENDARIO
+                </button>
+                <button id="tab-btn-historial" onclick="cambiarPestana('historial')" class="tab-btn px-3 py-2 bg-gray-800 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm">
+                    <i class="fas fa-cloud-download-alt mr-1"></i> NUBE
+                </button>
+            </div>
         </div>
 
         <!-- CONTENEDORES DE ÁREAS GENERADOS POR JS -->
         <div id="contenedores-areas"></div>
+
+        <!-- CONTENEDOR NUEVO: RESUMEN DE PLANIFICACIÓN ENTOMOLÓGICA -->
+        <div id="contenedor-resumen" class="tab-content hidden">
+            <div class="max-w-7xl mx-auto bg-gray-100 p-4 rounded-xl captura-objetivo">
+                <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-indigo-500 p-6 mb-6">
+                    <h1 class="text-2xl md:text-3xl font-bold text-indigo-700 uppercase tracking-wide flex items-center">
+                        <i class="fas fa-clipboard-check mr-3"></i> Planificación para Entomología
+                    </h1>
+                    <p class="text-gray-500 mt-2 font-medium">Cálculo automático de fechas para Encuesta y Verificación de los operativos de Control Larvario registrados en el Historial.</p>
+                </header>
+                
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                    <div class="overflow-x-auto no-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-indigo-600 text-white text-sm uppercase">
+                                    <th class="py-3 px-4 font-semibold border-b border-indigo-700">Área</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-indigo-700">Sec / Col / Folio</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-indigo-700 bg-orange-500" title="1 Día Antes del Inicio">Encuesta (-1)</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-indigo-700 bg-blue-600">Inicio Control Larvario</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-indigo-700 bg-blue-600">Fin Control Larvario</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-indigo-700 bg-green-500" title="1 Día Después del Fin">Verificación (+1)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-resumen" class="text-gray-700 text-sm">
+                                <tr><td colspan="6" class="text-center py-6 text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i> Calculando fechas...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- CONTENEDOR: HISTORIAL -->
         <div id="contenedor-historial" class="tab-content hidden">
@@ -193,11 +226,11 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-gray-800 text-white text-sm uppercase">
-                                    <th class="py-3 px-4 font-semibold border-b border-gray-700">Fecha</th>
-                                    <th class="py-3 px-4 font-semibold border-b border-gray-700">Folio</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-gray-700">Registro</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-gray-700">Folio / Fechas</th>
                                     <th class="py-3 px-4 font-semibold border-b border-gray-700">Área</th>
                                     <th class="py-3 px-4 font-semibold border-b border-gray-700">Sec/Col</th>
-                                    <th class="py-3 px-4 font-semibold border-b border-gray-700 w-1/3">Resumen</th>
+                                    <th class="py-3 px-4 font-semibold border-b border-gray-700 w-1/3">Resumen de Manzanas</th>
                                     <th class="py-3 px-4 font-semibold border-b border-gray-700 text-center">Acciones</th>
                                 </tr>
                             </thead>
@@ -259,11 +292,37 @@
             { id: 'nebulizacion', nombre: 'Nebulización', apps: 3, claseCSS: 'cal-area-nebulizacion text-cyan-800' }
         ];
 
+        // --- FUNCIONES MATEMÁTICAS DE FECHA ---
+        function sumarDias(fechaStr, dias) {
+            if (!fechaStr) return "Sin fecha";
+            try {
+                const partes = fechaStr.split('-');
+                if(partes.length !== 3) return fechaStr; // Fallback si no es YYYY-MM-DD
+                const fecha = new Date(partes[0], partes[1] - 1, partes[2]);
+                fecha.setDate(fecha.getDate() + dias);
+                return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch(e) {
+                return fechaStr;
+            }
+        }
+
+        function formatearFecha(fechaStr) {
+            if (!fechaStr) return "Sin fecha";
+            try {
+                const partes = fechaStr.split('-');
+                if(partes.length !== 3) return fechaStr;
+                const fecha = new Date(partes[0], partes[1] - 1, partes[2]);
+                return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch(e) {
+                return fechaStr;
+            }
+        }
+
         // --- FUNCIONES DE SEGURIDAD (BLOQUEO Y DESBLOQUEO) ---
         window.bloquearSistema = () => {
             window.usuarioActual = null;
             document.querySelectorAll('.editable').forEach(el => el.setAttribute('contenteditable', 'false'));
-            document.querySelectorAll('input[type="checkbox"], select').forEach(el => el.disabled = true);
+            document.querySelectorAll('input[type="checkbox"], select, input[type="date"]').forEach(el => el.disabled = true);
             document.querySelectorAll('.btn-requiere-auth').forEach(el => el.classList.add('hidden'));
             
             document.getElementById('auth-locked').classList.remove('hidden');
@@ -277,7 +336,7 @@
         window.desbloquearSistema = (rol) => {
             window.usuarioActual = rol;
             document.querySelectorAll('.editable').forEach(el => el.setAttribute('contenteditable', 'true'));
-            document.querySelectorAll('input[type="checkbox"], select').forEach(el => el.disabled = false);
+            document.querySelectorAll('input[type="checkbox"], select, input[type="date"]').forEach(el => el.disabled = false);
             document.querySelectorAll('.btn-requiere-auth').forEach(el => el.classList.remove('hidden'));
             
             document.getElementById('auth-locked').classList.add('hidden');
@@ -381,23 +440,17 @@
             
             window.registroEnEdicion = registro;
 
-            // Compatibilidad con registros antiguos (sin areaId)
             let idArea = registro.areaId;
             if (!idArea && registro.area) {
                 const matchedArea = areasInfo.find(a => a.nombre === registro.area);
                 if (matchedArea) idArea = matchedArea.id;
             }
-            if (!idArea) {
-                window.mostrarModal("Error", "No se puede editar este registro porque es un formato antiguo y no tiene un área identificada.", "error");
-                return;
-            }
+            if (!idArea) return window.mostrarModal("Error", "No se puede editar este registro antiguo.", "error");
 
             cambiarPestana(idArea);
-            
             const contenedor = document.getElementById('contenido-a-descargar-' + idArea);
             if(!contenedor) return;
 
-            // Limpieza profunda asegurando estructura HTML intacta
             limpiarDatosInterno(contenedor);
 
             contenedor.querySelector('.sector-texto').innerText = registro.sector || '';
@@ -408,7 +461,14 @@
             const isNeb = idArea === 'nebulizacion';
             const hasTipo = isEntomo || isNeb;
 
-            // Rellenar las tablas
+            // Cargar las Fechas de Inicio y Termino si existen
+            if (!hasTipo) {
+                const fInicio = contenedor.querySelector('.fecha-inicio');
+                const fTermino = contenedor.querySelector('.fecha-termino');
+                if(fInicio) fInicio.value = registro.fechaInicio || '';
+                if(fTermino) fTermino.value = registro.fechaTermino || '';
+            }
+
             if (registro.diasData) {
                 const diasCards = contenedor.querySelectorAll('.dia-card');
                 registro.diasData.forEach((diaData, index) => {
@@ -492,6 +552,10 @@
                 const data = await response.json();
                 window.historialGuardado = data;
                 window.renderizarHistorial();
+                
+                // Actualizar la pestaña de resumen operativo si estamos viéndola
+                if(getPestanaActiva() === 'resumen') actualizarVistaResumen();
+                
             } catch (error) {
                 console.error("Error al cargar historial", error);
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-500"><i class="fas fa-wifi mr-2"></i> Error de conexión. Revisa que configuraste bien el enlace.</td></tr>`;
@@ -508,7 +572,6 @@
             window.mostrarModal(tituloModal, mensajeModal, "info", async () => {
                 const datos = extraerDatosArea(idArea);
                 
-                // Obtener fecha y hora súper precisas para el sello de modificación
                 const fechaHoraActual = new Date().toLocaleString('es-MX', { 
                     year: 'numeric', month: '2-digit', day: '2-digit', 
                     hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true 
@@ -544,7 +607,6 @@
                             headers: { 'Content-Type': 'text/plain' },
                             body: JSON.stringify({ action: 'delete', id: datos.id })
                         });
-                        // Pausa obligatoria para evitar congelamiento de Google Sheets
                         await new Promise(resolve => setTimeout(resolve, 1500));
                     }
 
@@ -571,6 +633,12 @@
         };
 
         window.borrarRegistroSeguro = (id) => {
+            // VERIFICACIÓN DE ADMINISTRADOR
+            if (window.usuarioActual !== 'Administrador') {
+                window.mostrarModal("Acceso Denegado", "Solo el Administrador (Clave 07) tiene permisos para eliminar operativos guardados en el historial.", "error");
+                return;
+            }
+
             window.mostrarModal("Borrar Registro", "¿Estás seguro de que quieres eliminar esta programación para todos?", "warning", async () => {
                 if (!GOOGLE_SHEETS_URL) {
                     window.historialGuardado = window.historialGuardado.filter(item => String(item.id) !== String(id));
@@ -604,32 +672,50 @@
 
             areasInfo.forEach(area => {
                 const isBlock = area.id === 'lazarocardenas' ? 'block' : 'hidden';
+                
+                let htmlFechas = '';
+                if (area.id !== 'entomologia' && area.id !== 'nebulizacion') {
+                    htmlFechas = `
+                        <span class="hidden sm:inline-block text-gray-300 mx-2">|</span>
+                        <span class="flex items-center" title="Fecha de inicio del operativo">
+                            <i class="far fa-calendar-check text-green-500 mr-1"></i>
+                            Inicio <input type="date" class="fecha-inicio editable-input outline-none bg-transparent ml-1 font-bold text-green-700 cursor-pointer w-32">
+                        </span>
+                        <span class="hidden sm:inline-block text-gray-300 mx-2">|</span>
+                        <span class="flex items-center" title="Fecha de término del operativo">
+                            <i class="far fa-calendar-times text-red-500 mr-1"></i>
+                            Fin <input type="date" class="fecha-termino editable-input outline-none bg-transparent ml-1 font-bold text-red-700 cursor-pointer w-32">
+                        </span>
+                    `;
+                }
+
                 htmlTotal += `
                 <div id="contenedor-${area.id}" class="tab-content ${isBlock}">
                     <div id="contenido-a-descargar-${area.id}" class="max-w-5xl mx-auto bg-gray-100 p-4 rounded-xl captura-objetivo">
                         <header class="bg-white rounded-t-xl shadow-sm border-b-4 border-brandOrange-500 p-4 md:p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
-                            <div>
+                            <div class="w-full">
                                 <h1 class="text-2xl md:text-3xl font-bold text-brandBlue-600 uppercase tracking-wide">Prog. ${area.nombre}</h1>
-                                <p class="text-gray-500 mt-2 font-medium text-lg flex flex-wrap items-center gap-y-2">
-                                    <span class="flex items-center mr-4">
-                                        <i class="fas fa-map-marker-alt text-brandOrange-500 mr-2"></i>
+                                <p class="text-gray-500 mt-2 font-medium text-sm md:text-base flex flex-wrap items-center gap-y-2">
+                                    <span class="flex items-center">
+                                        <i class="fas fa-map-marker-alt text-brandOrange-500 mr-1"></i>
                                         Sector <span class="sector-texto editable ml-1 font-bold px-1 text-gray-800">179</span>
                                     </span>
-                                    <span class="hidden sm:inline-block text-gray-300 mr-4">|</span>
+                                    <span class="hidden sm:inline-block text-gray-300 mx-2">|</span>
                                     <span class="flex items-center">
-                                        <i class="fas fa-city text-brandBlue-600 mr-2"></i>
+                                        <i class="fas fa-city text-brandBlue-600 mr-1"></i>
                                         Colonia <span class="colonia-texto editable ml-1 font-bold px-1 text-brandBlue-600">Escribe Colonia</span>
                                     </span>
                                     <span class="hidden sm:inline-block text-gray-300 mx-2">|</span>
                                     <span class="flex items-center" title="Llenar posterior a la realización">
-                                        <i class="fas fa-file-invoice text-purple-500 mr-2"></i>
+                                        <i class="fas fa-file-invoice text-purple-500 mr-1"></i>
                                         Folio <span class="folio-texto editable ml-1 font-bold px-1 text-purple-700">S/N</span>
                                     </span>
+                                    ${htmlFechas}
                                 </p>
                             </div>
-                            <div class="flex flex-wrap gap-2" data-html2canvas-ignore="true">
+                            <div class="flex flex-wrap gap-2 w-full md:w-auto" data-html2canvas-ignore="true">
                                 <button onclick="requerirAcceso(() => procesarGuardado('${area.id}'))" class="btn-requiere-auth btn-guardar-registro bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-4 rounded-lg shadow-sm text-sm transition-colors flex items-center">
-                                    <i class="fas fa-cloud-upload-alt mr-2"></i> Guardar Registro
+                                    <i class="fas fa-cloud-upload-alt mr-2"></i> Guardar
                                 </button>
                                 <button onclick="requerirAcceso(() => window.mostrarModal('Borrar Datos', '¿Seguro que deseas limpiar la información?', 'warning', () => { limpiarDatosInterno(document.getElementById('contenido-a-descargar-${area.id}')); resetEdicionUI('${area.id}'); }))" class="btn-requiere-auth bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold py-2 px-3 rounded-lg shadow-sm text-sm transition-colors">
                                     <i class="fas fa-eraser"></i>
@@ -782,6 +868,13 @@
             const isNebulizacion = idArea === 'nebulizacion';
             const hasTipo = isEntomo || isNebulizacion;
             
+            let fechaInicio = "";
+            let fechaTermino = "";
+            if (!hasTipo) {
+                fechaInicio = contenedor.querySelector('.fecha-inicio')?.value || "";
+                fechaTermino = contenedor.querySelector('.fecha-termino')?.value || "";
+            }
+            
             let conteoTareas = 0;
             let manzanasCompletas = [];
             let manzanasIncompletas = [];
@@ -826,6 +919,11 @@
             let resumenDetallado = `<div class="text-xs space-y-1">`;
             let resumenPlanoText = "";
 
+            if (!hasTipo && fechaInicio && fechaTermino) {
+                 resumenDetallado += `<div class="mb-2 text-sm text-blue-800 bg-blue-50 p-1 rounded border border-blue-100"><i class="far fa-calendar-alt"></i> <b>Operativo:</b> ${formatearFecha(fechaInicio)} al ${formatearFecha(fechaTermino)}</div>`;
+                 resumenPlanoText += `[Operativo: ${formatearFecha(fechaInicio)} al ${formatearFecha(fechaTermino)}] `;
+            }
+
             if (manzanasCompletas.length > 0) {
                 resumenDetallado += `<div class="text-green-700"><i class="fas fa-check-circle"></i> Completas: ${manzanasCompletas.join(' | ')}</div>`;
                 resumenPlanoText += "✅ Completas: " + manzanasCompletas.map(m => m.replace(/<[^>]*>?/gm, '')).join(' | ') + ". ";
@@ -836,12 +934,13 @@
             }
             if (conteoTareas === 0) {
                 resumenDetallado += `<div class="text-gray-500">Sin manzanas asignadas.</div>`;
-                resumenPlanoText = "Sin programación.";
+                resumenPlanoText += "Sin programación.";
             }
             resumenDetallado += `</div>`;
 
             return {
                 areaId: idArea, area: infoArea.nombre, sector: sector, colonia: colonia, folio: folio,
+                fechaInicio: fechaInicio, fechaTermino: fechaTermino,
                 resumenTareas: resumenDetallado, resumenPlano: resumenPlanoText, diasData: diasData
             };
         }
@@ -857,12 +956,18 @@
 
             let html = '';
             datos.forEach((reg) => {
+                let infoFolioFechas = `<div class="text-sm font-bold text-purple-600 mb-1">${reg.folio || 'S/N'}</div>`;
+                if(reg.fechaInicio && reg.fechaTermino) {
+                    infoFolioFechas += `<div class="text-xs text-blue-600"><i class="far fa-calendar-alt"></i> ${formatearFecha(reg.fechaInicio)} al ${formatearFecha(reg.fechaTermino)}</div>`;
+                }
+
                 html += `
                 <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td class="py-3 px-4 text-xs font-medium text-gray-600"><i class="far fa-clock mr-1"></i>${reg.fechaGuardado}</td>
-                    <td class="py-3 px-4 text-sm font-bold">
-                        <button onclick="verDetalleRegistro('${reg.id}')" class="text-purple-600 hover:text-purple-800 flex items-center gap-1 bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-full transition-colors">
-                            <i class="fas fa-eye"></i> ${reg.folio || 'S/N'}
+                    <td class="py-3 px-4">
+                        ${infoFolioFechas}
+                        <button onclick="verDetalleRegistro('${reg.id}')" class="mt-1 text-xs text-brandBlue-600 hover:text-brandBlue-800 flex items-center gap-1 bg-brandBlue-50 hover:bg-brandBlue-100 px-2 py-0.5 rounded-full transition-colors w-fit">
+                            <i class="fas fa-eye"></i> Ver Tareas
                         </button>
                     </td>
                     <td class="py-3 px-4 text-sm font-bold text-brandBlue-600">${reg.area}</td>
@@ -889,9 +994,14 @@
             
             const isEntomo = registro.area === 'Entomología';
             const isNebulizacion = registro.area === 'Nebulización';
+            
+            let infoExtra = '';
+            if (registro.fechaInicio && registro.fechaTermino) {
+                infoExtra = ` | Operativo: ${formatearFecha(registro.fechaInicio)} al ${formatearFecha(registro.fechaTermino)}`;
+            }
 
             document.getElementById('detalle-titulo').innerText = `Folio: ${registro.folio || 'S/N'} - ${registro.area}`;
-            document.getElementById('detalle-subtitulo').innerText = `Sector: ${registro.sector} | Colonia: ${registro.colonia} | Guardado: ${registro.fechaGuardado}`;
+            document.getElementById('detalle-subtitulo').innerText = `Sector: ${registro.sector} | Colonia: ${registro.colonia}${infoExtra} | Guardado: ${registro.fechaGuardado}`;
 
             const contenedor = document.getElementById('detalle-contenido');
             let html = '';
@@ -955,6 +1065,12 @@
             contenedor.querySelector('.sector-texto').innerText = '179';
             contenedor.querySelector('.colonia-texto').innerText = 'Escribe Colonia';
             contenedor.querySelector('.folio-texto').innerText = 'S/N';
+            
+            const fInicio = contenedor.querySelector('.fecha-inicio');
+            if(fInicio) fInicio.value = '';
+            const fTermino = contenedor.querySelector('.fecha-termino');
+            if(fTermino) fTermino.value = '';
+
             contenedor.querySelectorAll('.manzanas-input').forEach(c => c.innerText = '');
             contenedor.querySelectorAll('.totales-input').forEach(c => c.innerText = '');
             contenedor.querySelectorAll('.avance-input').forEach(c => c.innerText = '');
@@ -965,6 +1081,49 @@
                     fila.querySelectorAll('td')[0].innerText = `Aplicativo ${i+1}`;
                 });
             });
+        }
+
+        // --- VISTA PLANIFICACIÓN ENTOMO (RESUMEN OPERATIVOS) ---
+        function actualizarVistaResumen() {
+            const tbody = document.getElementById('tabla-resumen');
+            let html = '';
+            
+            const registrosCL = window.historialGuardado.filter(r => r.areaId !== 'entomologia' && r.areaId !== 'nebulizacion');
+            
+            if (registrosCL.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-500 italic">No hay operativos de Control Larvario registrados en el historial.</td></tr>';
+                return;
+            }
+
+            registrosCL.forEach(reg => {
+                if(reg.fechaInicio && reg.fechaTermino) {
+                    const inicioFormateado = formatearFecha(reg.fechaInicio);
+                    const finFormateado = formatearFecha(reg.fechaTermino);
+                    const encuestaFormateada = sumarDias(reg.fechaInicio, -1);
+                    const verificacionFormateada = sumarDias(reg.fechaTermino, 1);
+
+                    html += `
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4 font-medium text-gray-800">
+                            <div class="text-xs text-gray-500 uppercase tracking-wide font-bold">${reg.area}</div>
+                        </td>
+                        <td class="py-3 px-4 font-medium text-gray-800">
+                            Sec: ${reg.sector} | Col: ${reg.colonia}<br>
+                            <span class="font-bold text-purple-600 text-xs uppercase">Folio: ${reg.folio || 'S/N'}</span>
+                        </td>
+                        <td class="py-3 px-4 font-bold text-brandOrange-600 bg-orange-50"><i class="fas fa-clipboard-list mr-1"></i> ${encuestaFormateada}</td>
+                        <td class="py-3 px-4 font-medium text-blue-800 bg-blue-50">${inicioFormateado}</td>
+                        <td class="py-3 px-4 font-medium text-blue-800 bg-blue-50">${finFormateado}</td>
+                        <td class="py-3 px-4 font-bold text-green-600 bg-green-50"><i class="fas fa-check-double mr-1"></i> ${verificacionFormateada}</td>
+                    </tr>
+                    `;
+                }
+            });
+            
+            if (html === '') {
+                 html = '<tr><td colspan="6" class="text-center py-6 text-gray-500 italic">Los operativos registrados no tienen fechas de inicio/fin.</td></tr>';
+            }
+            tbody.innerHTML = html;
         }
 
         // --- VISTA CALENDARIO GENERAL ---
@@ -1033,21 +1192,28 @@
             if (!idArea) return;
             
             document.querySelectorAll('.tab-content').forEach(el => { el.classList.add('hidden'); el.classList.remove('block'); });
-            document.querySelectorAll('.tab-btn').forEach(btn => { btn.className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm"; });
+            document.querySelectorAll('.tab-btn').forEach(btn => { btn.className = "tab-btn px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm"; });
 
             const btnCal = document.getElementById('tab-btn-calendario');
             const btnHistorial = document.getElementById('tab-btn-historial');
+            const btnResumen = document.getElementById('tab-btn-resumen');
             const btnArea = document.getElementById('tab-btn-' + idArea);
+
+            // Reiniciar botones especiales
+            if(btnCal) btnCal.className = "tab-btn px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
+            if(btnHistorial) btnHistorial.className = "tab-btn px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
+            if(btnResumen) btnResumen.className = "tab-btn px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
 
             if(idArea === 'calendario') {
                 actualizarVistaCalendario();
-                if(btnCal) btnCal.className = "tab-btn px-4 py-2 bg-purple-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto";
+                if(btnCal) btnCal.className = "tab-btn px-3 py-2 bg-purple-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
             } else if (idArea === 'historial') {
-                if(btnHistorial) btnHistorial.className = "tab-btn px-4 py-2 bg-gray-800 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
-                if(btnCal) btnCal.className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto";
+                if(btnHistorial) btnHistorial.className = "tab-btn px-3 py-2 bg-gray-800 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
+            } else if (idArea === 'resumen') {
+                actualizarVistaResumen();
+                if(btnResumen) btnResumen.className = "tab-btn px-3 py-2 bg-indigo-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
             } else {
-                if(btnArea) btnArea.className = "tab-btn px-4 py-2 bg-brandBlue-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
-                if(btnCal) btnCal.className = "tab-btn px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-t-lg shadow-sm text-xs sm:text-sm ml-auto";
+                if(btnArea) btnArea.className = "tab-btn px-3 py-2 bg-brandBlue-600 text-white font-bold rounded-t-lg shadow-sm text-xs sm:text-sm";
             }
 
             const contenedor = document.getElementById('contenedor-' + idArea);
@@ -1055,7 +1221,7 @@
         };
 
         function getPestanaActiva() {
-            const tabs = ['lazarocardenas', 'brigada', 'salinas', 'foraneas', 'entomologia', 'nebulizacion', 'calendario', 'historial'];
+            const tabs = ['lazarocardenas', 'brigada', 'salinas', 'foraneas', 'entomologia', 'nebulizacion', 'calendario', 'historial', 'resumen'];
             let activa = tabs[0];
             tabs.forEach(tab => {
                 const el = document.getElementById('contenedor-' + tab);
@@ -1065,9 +1231,8 @@
         }
 
         window.descargarImagen = () => {
-            if (document.activeElement) document.activeElement.blur();
             const areaActiva = getPestanaActiva();
-            if (areaActiva === 'historial') return window.mostrarModal("No disponible", "La pestaña de Historial no se puede descargar como imagen.", "warning");
+            if (areaActiva === 'historial' || areaActiva === 'resumen') return window.mostrarModal("No disponible", "Las pestañas de administración no se pueden descargar como imagen.", "warning");
 
             const btn = document.querySelector('button[onclick="descargarImagen()"]');
             const originalText = btn.innerHTML;
@@ -1088,69 +1253,6 @@
                 btn.innerHTML = '<i class="fas fa-times mr-2"></i> Error';
                 setTimeout(() => { btn.innerHTML = originalText; }, 3000);
             });
-        };
-
-        window.exportarCalendario = () => {
-            const areaActiva = getPestanaActiva();
-            if (areaActiva === 'historial') return window.mostrarModal("No disponible", "Ve a un área o al Calendario para exportar a .ICS", "warning");
-
-            let icsMSG = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Programacion de Trabajo//ES\n";
-            let nombreArchivoDescarga = "";
-
-            const procesarAreaParaICS = (idArea, tituloGeneral) => {
-                const contenedor = document.getElementById('contenido-a-descargar-' + idArea);
-                if(!contenedor) return;
-                const sector = contenedor.querySelector('.sector-texto').innerText.trim() || 'S/N';
-                const colonia = contenedor.querySelector('.colonia-texto').innerText.trim() || 'Sin Colonia';
-                const tituloArea = contenedor.querySelector('h1').innerText.trim();
-                const tituloFinal = tituloGeneral ? `[${tituloGeneral}] ${tituloArea}` : tituloArea;
-                const hasTipo = idArea === 'entomologia' || idArea === 'nebulizacion';
-
-                contenedor.querySelectorAll('.dia-card').forEach(card => {
-                    const fechaTexto = card.querySelector('.fecha-editable').innerText.trim();
-                    let dateStr = "";
-                    try {
-                        const partes = fechaTexto.split(',');
-                        if(partes.length > 1) {
-                            const dp = partes[1].split('/');
-                            dateStr = `${dp[2].trim()}${dp[1].trim().padStart(2,'0')}${dp[0].trim().padStart(2,'0')}`;
-                        } else { dateStr = new Date().toISOString().slice(0,10).replace(/-/g,""); }
-                    } catch(e) { dateStr = new Date().toISOString().slice(0,10).replace(/-/g,""); }
-
-                    let descripcion = `Tareas en Sector ${sector}, Colonia ${colonia}\\n\\n`;
-                    card.querySelectorAll('tbody tr').forEach(fila => {
-                        const tds = fila.querySelectorAll('td');
-                        const app = tds[0].innerText.trim();
-                        const manz = hasTipo ? tds[2].innerText.trim() : tds[1].innerText.trim();
-                        const total = hasTipo ? tds[3].innerText.trim() : tds[2].innerText.trim();
-                        const tipo = hasTipo ? (tds[1].querySelector('select') ? tds[1].querySelector('select').value : '') : '';
-
-                        if (manz.length > 0) {
-                            let labelTotal = idArea === 'entomologia' ? 'Avance' : 'Total';
-                            descripcion += hasTipo ? `👉 ${app} (${tipo}): Manzanas ${manz} (${labelTotal}: ${total})\\n` : `👉 ${app}: Manzanas ${manz} (Total: ${total})\\n`;
-                        }
-                    });
-
-                    if(descripcion.includes('👉')) icsMSG += "BEGIN:VEVENT\nDTSTART;VALUE=DATE:" + dateStr + "\nDTEND;VALUE=DATE:" + dateStr + "\nSUMMARY:" + tituloFinal + " - Sec " + sector + "\nDESCRIPTION:" + descripcion + "\nEND:VEVENT\n";
-                });
-            };
-
-            if(areaActiva === 'calendario') {
-                areasInfo.forEach(area => procesarAreaParaICS(area.id, area.nombre));
-                nombreArchivoDescarga = `Calendario_General_Todas_Areas.ics`;
-            } else {
-                procesarAreaParaICS(areaActiva, "");
-                nombreArchivoDescarga = `Calendario_${areaActiva}.ics`;
-            }
-
-            icsMSG += "END:VCALENDAR";
-            const blob = new Blob([icsMSG], { type: 'text/calendar;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = nombreArchivoDescarga;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         };
     </script>
 </body>
