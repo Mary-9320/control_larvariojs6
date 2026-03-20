@@ -1108,7 +1108,8 @@
             const tbody = document.getElementById('tabla-resumen');
             let html = '';
             
-            const registrosCL = window.historialGuardado.filter(r => r.areaId && r.areaId !== 'entomologia' && r.areaId !== 'nebulizacion');
+            // CORRECCIÓN: Filtramos usando el nombre del área y no el ID interno
+            const registrosCL = window.historialGuardado.filter(r => r.area && r.area !== 'Entomología' && r.area !== 'Nebulización');
             
             if (registrosCL.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-500 italic">No hay operativos de Control Larvario registrados en el historial.</td></tr>';
